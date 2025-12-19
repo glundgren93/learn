@@ -1,0 +1,7 @@
+node_modules/
+dist/
+learning/
+coverage/
+*.log
+.DS_Store
+

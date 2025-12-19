@@ -1,0 +1,94 @@
+import { readFile, writeFile, mkdir } from 'fs/promises';
+import { join } from 'path';
+import type { Progress, StageProgress } from '../types/index.js';
+
+const LEARNING_DIR = process.env.LEARNING_DIR || './learning';
+
+export async function getProgressPath(topic: string): Promise<string> {
+  return join(LEARNING_DIR, topic, 'progress.json');
+}
+
+export async function loadProgress(topic: string): Promise<Progress | null> {
+  try {
+    const path = await getProgressPath(topic);
+    const content = await readFile(path, 'utf-8');
+    return JSON.parse(content) as Progress;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function saveProgress(progress: Progress): Promise<void> {
+  const path = await getProgressPath(progress.topic);
+  const dir = join(LEARNING_DIR, progress.topic);
+  
+  await mkdir(dir, { recursive: true });
+  await writeFile(path, JSON.stringify(progress, null, 2), 'utf-8');
+}
+
+export async function initializeProgress(topic: string, totalStages: number): Promise<Progress> {
+  const stages: Record<string, StageProgress> = {};
+  
+  // First stage is unlocked, rest are locked
+  stages['1'] = { status: 'in_progress', attempts: 0 };
+  for (let i = 2; i <= totalStages; i++) {
+    stages[i.toString()] = { status: 'locked' };
+  }
+
+  const progress: Progress = {
+    topic,
+    currentStage: 1,
+    stages,
+  };
+
+  await saveProgress(progress);
+  return progress;
+}
+
+export async function markStageComplete(topic: string, stageNumber: number): Promise<void> {
+  const progress = await loadProgress(topic);
+  if (!progress) {
+    throw new Error(`No progress found for topic: ${topic}`);
+  }
+
+  const stageKey = stageNumber.toString();
+  progress.stages[stageKey] = {
+    status: 'completed',
+    completedAt: new Date().toISOString(),
+  };
+
+  // Unlock next stage if exists
+  const nextStageKey = (stageNumber + 1).toString();
+  if (progress.stages[nextStageKey] && progress.stages[nextStageKey].status === 'locked') {
+    progress.stages[nextStageKey] = {
+      status: 'in_progress',
+      attempts: 0,
+    };
+    progress.currentStage = stageNumber + 1;
+  }
+
+  await saveProgress(progress);
+}
+
+export async function incrementAttempts(topic: string, stageNumber: number): Promise<void> {
+  const progress = await loadProgress(topic);
+  if (!progress) {
+    throw new Error(`No progress found for topic: ${topic}`);
+  }
+
+  const stageKey = stageNumber.toString();
+  const stage = progress.stages[stageKey];
+  if (stage && stage.status === 'in_progress') {
+    stage.attempts = (stage.attempts || 0) + 1;
+    await saveProgress(progress);
+  }
+}
+
+export async function getCurrentStage(topic: string): Promise<number | null> {
+  const progress = await loadProgress(topic);
+  return progress?.currentStage || null;
+}
+
