@@ -1,4 +1,4 @@
-import type { LessonContext } from "../../types/index.js";
+import type { LessonContext } from '../../types/index.js';
 
 export const LESSON_SYSTEM_PROMPT = `You are an expert programming instructor creating a lesson.
 
@@ -61,18 +61,12 @@ Objective: ${context.objective}
 Previous stages completed:
 ${
 	context.previousStages.length > 0
-		? context.previousStages
-				.map((s) => `- ${s.title}: ${s.objective}`)
-				.join("\n")
-		: "None (this is the first stage)"
+		? context.previousStages.map((s) => `- ${s.title}: ${s.objective}`).join('\n')
+		: 'None (this is the first stage)'
 }
 
 The learner has already implemented:
-${
-	context.previousConcepts.length > 0
-		? context.previousConcepts.join(", ")
-		: "Nothing yet"
-}
+${context.previousConcepts.length > 0 ? context.previousConcepts.join(', ') : 'Nothing yet'}
 
 Build upon their existing knowledge. Reference their previous implementations where relevant.
 `;

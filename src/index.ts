@@ -5,12 +5,8 @@ import { setupCommands } from './cli/commands.js';
 
 const program = new Command();
 
-program
-  .name('learn')
-  .description('AI-powered programming learning CLI')
-  .version('1.0.0');
+program.name('learn').description('AI-powered programming learning CLI').version('1.0.0');
 
 setupCommands(program);
 
 program.parse();
-
