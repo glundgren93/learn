@@ -1,3 +1,4 @@
+export { registerAskCommand } from './ask.js';
 export { registerCompletionCommand } from './completion.js';
 export { registerContinueCommand } from './continue.js';
 export { registerCurrentCommand } from './current.js';
