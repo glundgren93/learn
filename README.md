@@ -98,6 +98,22 @@ learning/
                 └── solution.test.ts  # Tests to pass
 ```
 
+## Shell Completion
+
+Enable smart autocompletion for zsh:
+
+```bash
+# Add to your ~/.zshrc
+eval "$(learn completion)"
+```
+
+This provides:
+- Tab completion for all commands (`start`, `switch`, `run`, etc.)
+- Smart topic suggestions for `switch`, `continue`, `run`, and `hint` commands
+- Lists your existing topics from the `learning/` directory
+
+After adding to your `.zshrc`, restart your shell or run `source ~/.zshrc`.
+
 ## Development
 
 ```bash
