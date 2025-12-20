@@ -46,16 +46,26 @@ export function registerRunCommand(program: Command): void {
 					console.log(chalk.bold('\n✨ Great job! Run "learn continue" for the next lesson.'));
 				} else {
 					spinner.fail(chalk.red('Some tests failed'));
-					console.log(chalk.red('\nFailed tests:'));
-					result.failedTests.forEach((test) => {
-						console.log(chalk.red(`  × ${test}`));
+					console.log();
+
+					result.failedTests.forEach((test, index) => {
+						console.log(chalk.red.bold(`  ✗ ${test.name}`));
+						if (test.error) {
+							console.log(chalk.dim(`    ${test.error}`));
+						}
+						if (test.expected || test.received) {
+							if (test.expected) {
+								console.log(chalk.green(`      Expected: ${test.expected}`));
+							}
+							if (test.received) {
+								console.log(chalk.red(`      Received: ${test.received}`));
+							}
+						}
+						if (index < result.failedTests.length - 1) {
+							console.log();
+						}
 					});
-					if (result.errorMessages.length > 0) {
-						console.log(chalk.yellow('\nErrors:'));
-						result.errorMessages.forEach((msg) => {
-							console.log(chalk.yellow(`  ${msg}`));
-						});
-					}
+
 					console.log(chalk.yellow('\n💡 Tip: Run "learn hint" for help'));
 				}
 			} catch (error) {
