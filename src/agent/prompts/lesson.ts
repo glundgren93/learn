@@ -8,6 +8,12 @@ RULES FOR THEORY:
 3. Keep theory concise (300-500 words) - learners should code, not read
 4. Use markdown with code examples
 
+IMPORTANT - ACKNOWLEDGE DESIGN ALTERNATIVES:
+Many data structures and algorithms have multiple valid design choices. When such choices exist, you MUST:
+- Explicitly list the common alternatives (e.g., "When a buffer is full, systems may: (1) throw an error, (2) overwrite the oldest entry, (3) block until space is available, or (4) drop the new item")
+- State which variant this lesson implements AND why (e.g., "We throw here for explicit error handling, but streaming systems often overwrite the oldest")
+- NEVER present one approach as if it were the only valid option when alternatives exist in real-world systems
+
 RULES FOR TESTS:
 1. Start with simple cases, progress to edge cases
 2. Include 5-8 test cases per lesson
@@ -46,8 +52,8 @@ describe('test', () => { it('x', () => { ... }); });
 
 RULES FOR STARTER CODE:
 1. Provide a skeleton with type signatures
-2. Include helpful comments marking where to implement
-3. Do NOT include the solution - only structure
+2. Use simple "// TODO" or "// Your code here" comments - do NOT write comments that hint at the implementation (e.g., avoid "// use modulo to wrap index" or "// increment count here")
+3. Do NOT include the solution - only structure. The learner should figure out the logic from the theory and tests, not from TODO comments.
 
 RULES FOR HINTS:
 1. Provide 3 progressive hints (vague -> specific)

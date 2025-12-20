@@ -24,7 +24,6 @@ export interface TestCase {
 export interface Lesson {
 	stageId: string;
 	theory: string;
-	keyTakeaways: string[];
 	testCases: TestCase[];
 	starterCode: string;
 	hints: string[];
