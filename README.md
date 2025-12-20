@@ -41,6 +41,7 @@ learn start aws-sqs          # Learn AWS SQS
 learn continue               # Generate the next lesson for current topic
 # Edit the solution.ts file in the generated stage folder
 learn run                    # Run tests to check your solution
+learn run --stage stage-2    # Rerun tests for a specific stage
 learn hint                   # Get hints if you're stuck
 ```
 
@@ -69,6 +70,7 @@ learn hint binary-trees      # Get hints for binary-trees topic
 | `learn start <topic>` | Start a new learning path |
 | `learn continue [topic]` | Generate/continue to the next lesson |
 | `learn run [topic]` | Run tests for the current stage |
+| `learn run --stage <id>` | Run tests for a specific stage (e.g., `stage-2` or `linked-list-queue-impl`) |
 | `learn hint [topic]` | Get progressive hints |
 | `learn status` | Show progress for all topics |
 | `learn switch [topic]` | Switch active topic |
