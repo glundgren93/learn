@@ -40,16 +40,33 @@ export function registerRunCommand(program: Command): void {
 				await incrementAttempts(progress.topic, currentStageNum);
 				const result = await runTests(testPath);
 
+				const passedTests = result.tests.filter((t) => t.passed);
+				const failedTests = result.tests.filter((t) => !t.passed);
+
 				if (result.passed) {
 					spinner.succeed(chalk.green('All tests passed! 🎉'));
 					await markStageComplete(progress.topic, currentStageNum);
+					console.log();
+					for (const test of passedTests) {
+						console.log(chalk.green(`  ✓ ${test.name}`));
+					}
 					console.log(chalk.bold('\n✨ Great job! Run "learn continue" for the next lesson.'));
 				} else {
 					spinner.fail(chalk.red('Some tests failed'));
 					console.log();
 
-					result.failedTests.forEach((test, index) => {
-						console.log(chalk.red.bold(`  ✗ ${test.name}`));
+					// Show passed tests first
+					for (const test of passedTests) {
+						console.log(chalk.green(`  ✓ ${test.name}`));
+					}
+
+					if (passedTests.length > 0 && failedTests.length > 0) {
+						console.log();
+					}
+
+					// Show failed tests with details
+					failedTests.forEach((test, index) => {
+						console.log(chalk.red(`  ✗ ${test.name}`));
 						if (test.error) {
 							console.log(chalk.dim(`    ${test.error}`));
 						}
@@ -61,7 +78,7 @@ export function registerRunCommand(program: Command): void {
 								console.log(chalk.red(`      Received: ${test.received}`));
 							}
 						}
-						if (index < result.failedTests.length - 1) {
+						if (index < failedTests.length - 1) {
 							console.log();
 						}
 					});
