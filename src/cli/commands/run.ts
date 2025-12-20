@@ -9,8 +9,9 @@ import { findCurrentTopic } from '../utils/index.js';
 export function registerRunCommand(program: Command): void {
 	program
 		.command('run [topic]')
-		.description('Run tests for the current stage (optionally specify topic)')
-		.action(async (topicArg?: string) => {
+		.description('Run tests for the current stage (optionally specify topic or stage)')
+		.option('-s, --stage <stageId>', 'Run tests for a specific stage (e.g., stage-1, linked-list-queue-impl)')
+		.action(async (topicArg: string | undefined, options: { stage?: string }) => {
 			const progress = await findCurrentTopic(topicArg);
 			if (!progress) {
 				console.log(
@@ -25,19 +26,61 @@ export function registerRunCommand(program: Command): void {
 				return;
 			}
 
-			const currentStageNum = progress.currentStage;
-			const currentStage = roadmap.stages[currentStageNum - 1];
+			let targetStage: typeof roadmap.stages[number] | undefined;
+			let targetStageNum: number;
+			let isRerun = false;
 
-			if (!currentStage) {
+			if (options?.stage) {
+				// Find stage by id or by number (stage-1, stage-2, etc.)
+				const stageArg = options.stage;
+				const stageNumMatch = stageArg.match(/^stage-?(\d+)$/i);
+
+				if (stageNumMatch) {
+					// stage-1, stage-2, etc.
+					targetStageNum = Number.parseInt(stageNumMatch[1], 10);
+					targetStage = roadmap.stages[targetStageNum - 1];
+				} else {
+					// Match by stage id
+					const foundIndex = roadmap.stages.findIndex((s) => s.id === stageArg);
+					if (foundIndex !== -1) {
+						targetStageNum = foundIndex + 1;
+						targetStage = roadmap.stages[foundIndex];
+					} else {
+						// Try partial match
+						const partialIndex = roadmap.stages.findIndex((s) => s.id.includes(stageArg));
+						if (partialIndex !== -1) {
+							targetStageNum = partialIndex + 1;
+							targetStage = roadmap.stages[partialIndex];
+						} else {
+							console.log(chalk.red(`Stage not found: ${stageArg}`));
+							console.log(chalk.dim('Available stages:'));
+							roadmap.stages.forEach((s, i) => {
+								console.log(chalk.dim(`  stage-${i + 1}: ${s.id}`));
+							});
+							return;
+						}
+					}
+				}
+				isRerun = targetStageNum < progress.currentStage;
+			} else {
+				targetStageNum = progress.currentStage;
+				targetStage = roadmap.stages[targetStageNum - 1];
+			}
+
+			if (!targetStage) {
 				console.log(chalk.green('🎉 All stages completed!'));
 				return;
 			}
 
-			const testPath = getTestPath(progress.topic, currentStage.id);
-			const spinner = ora(`Running tests for ${progress.topic}...`).start();
+			const testPath = getTestPath(progress.topic, targetStage.id);
+			const stageLabel = isRerun ? `${targetStage.id} (rerun)` : targetStage.id;
+			const spinner = ora(`Running tests for ${stageLabel}...`).start();
 
 			try {
-				await incrementAttempts(progress.topic, currentStageNum);
+				// Only track attempts for the current stage (not reruns)
+				if (!isRerun) {
+					await incrementAttempts(progress.topic, targetStageNum);
+				}
 				const result = await runTests(testPath);
 
 				const passedTests = result.tests.filter((t) => t.passed);
@@ -45,12 +88,19 @@ export function registerRunCommand(program: Command): void {
 
 				if (result.passed) {
 					spinner.succeed(chalk.green('All tests passed! 🎉'));
-					await markStageComplete(progress.topic, currentStageNum);
+					// Only mark complete for current stage (not reruns)
+					if (!isRerun) {
+						await markStageComplete(progress.topic, targetStageNum);
+					}
 					console.log();
 					for (const test of passedTests) {
 						console.log(chalk.green(`  ✓ ${test.name}`));
 					}
-					console.log(chalk.bold('\n✨ Great job! Run "learn continue" for the next lesson.'));
+					if (isRerun) {
+						console.log(chalk.dim('\n(This was a rerun of a completed stage)'));
+					} else {
+						console.log(chalk.bold('\n✨ Great job! Run "learn continue" for the next lesson.'));
+					}
 				} else {
 					spinner.fail(chalk.red('Some tests failed'));
 					console.log();

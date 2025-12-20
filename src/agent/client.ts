@@ -5,14 +5,18 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 
 dotenv.config();
 
-const apiKey = process.env.OPENAI_API_KEY;
-if (!apiKey) {
-	throw new Error('OPENAI_API_KEY environment variable is required');
-}
+let openaiClient: OpenAI | null = null;
 
-export const openai = new OpenAI({
-	apiKey,
-});
+function getOpenAI(): OpenAI {
+	if (!openaiClient) {
+		const apiKey = process.env.OPENAI_API_KEY;
+		if (!apiKey) {
+			throw new Error('OPENAI_API_KEY environment variable is required');
+		}
+		openaiClient = new OpenAI({ apiKey });
+	}
+	return openaiClient;
+}
 
 export const model = process.env.OPENAI_MODEL || 'gpt-4o';
 
@@ -41,7 +45,7 @@ export async function callWithStructuredOutput<T>(
 		additionalProperties: false,
 	};
 
-	const response = await openai.chat.completions.create({
+	const response = await getOpenAI().chat.completions.create({
 		model,
 		messages: [
 			{ role: 'system', content: systemPrompt },
