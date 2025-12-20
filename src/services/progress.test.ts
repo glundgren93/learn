@@ -1,12 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdir, rm } from 'fs/promises';
-import { join } from 'path';
 import {
   initializeProgress,
   loadProgress,
   markStageComplete,
   incrementAttempts,
   getCurrentStage,
+  setActiveTopic,
+  getActiveTopic,
+  getAllTopicsProgress,
 } from './progress.js';
 
 const TEST_LEARNING_DIR = './test-learning';
@@ -70,5 +72,30 @@ describe('Progress Service', () => {
     const stage = await getCurrentStage('test-topic');
     expect(stage).toBe(1);
   });
-});
 
+  it('should set and get active topic', async () => {
+    await setActiveTopic('my-topic');
+    const active = await getActiveTopic();
+    expect(active).toBe('my-topic');
+  });
+
+  it('should return null when no active topic is set', async () => {
+    const active = await getActiveTopic();
+    expect(active).toBeNull();
+  });
+
+  it('should get all topics progress', async () => {
+    await initializeProgress('topic-1', 3);
+    await initializeProgress('topic-2', 5);
+
+    const allProgress = await getAllTopicsProgress();
+    expect(allProgress).toHaveLength(2);
+    expect(allProgress.map((p) => p.topic)).toContain('topic-1');
+    expect(allProgress.map((p) => p.topic)).toContain('topic-2');
+  });
+
+  it('should return empty array when no topics exist', async () => {
+    const allProgress = await getAllTopicsProgress();
+    expect(allProgress).toEqual([]);
+  });
+});

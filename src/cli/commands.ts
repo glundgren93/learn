@@ -16,10 +16,12 @@ import {
   loadProgress,
   markStageComplete,
   incrementAttempts,
-  getCurrentStage,
+  setActiveTopic,
+  getActiveTopic,
+  getAllTopicsProgress,
 } from '../services/progress.js';
 import { runTests } from '../services/testRunner.js';
-import { readFile, readdir } from 'fs/promises';
+import { readFile, readdir, writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 
 const LEARNING_DIR = process.env.LEARNING_DIR || './learning';
@@ -36,7 +38,7 @@ export function setupCommands(program: Command) {
         // Check if roadmap already exists
         const existingRoadmap = await loadRoadmap(topic);
         if (existingRoadmap) {
-          spinner.fail(`Topic "${topic}" already exists. Use "learn continue" to proceed.`);
+          spinner.fail(`Topic "${topic}" already exists. Use "learn switch ${topic}" to switch to it.`);
           return;
         }
 
@@ -44,6 +46,9 @@ export function setupCommands(program: Command) {
         const roadmap = await generateRoadmap(topic);
         await saveRoadmap(topic, roadmap);
         await initializeProgress(topic, roadmap.stages.length);
+        
+        // Set as active topic
+        await setActiveTopic(topic);
 
         spinner.succeed('Roadmap generated successfully!');
 
@@ -64,13 +69,60 @@ export function setupCommands(program: Command) {
       }
     });
 
+  // Switch command
+  program
+    .command('switch [topic]')
+    .description('Switch to a different learning topic')
+    .action(async (topic?: string) => {
+      const allProgress = await getAllTopicsProgress();
+      
+      if (allProgress.length === 0) {
+        console.log(chalk.red('No learning paths found. Use "learn start <topic>" to begin.'));
+        return;
+      }
+
+      let selectedTopic = topic;
+
+      if (!selectedTopic) {
+        // Show interactive topic selection
+        const activeTopic = await getActiveTopic();
+        
+        const choices = allProgress.map((p) => {
+          const completed = Object.values(p.stages).filter((s) => s.status === 'completed').length;
+          const total = Object.keys(p.stages).length;
+          const isActive = p.topic === activeTopic;
+          const label = `${p.topic} (${completed}/${total} stages)${isActive ? ' ← current' : ''}`;
+          return { name: label, value: p.topic };
+        });
+
+        const answer = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'topic',
+            message: 'Select a topic to switch to:',
+            choices,
+          },
+        ]);
+        selectedTopic = answer.topic;
+      }
+
+      // Verify topic exists
+      const progress = await loadProgress(selectedTopic!);
+      if (!progress) {
+        console.log(chalk.red(`Topic "${selectedTopic}" not found.`));
+        return;
+      }
+
+      await setActiveTopic(selectedTopic!);
+      console.log(chalk.green(`✓ Switched to "${selectedTopic}" (Stage ${progress.currentStage})`));
+    });
+
   // Continue command
   program
-    .command('continue')
-    .description('Continue to the next lesson in your current learning path')
-    .action(async () => {
-      // Find current topic (simplified - could be improved with topic selection)
-      const progress = await findCurrentTopic();
+    .command('continue [topic]')
+    .description('Continue to the next lesson (optionally specify topic)')
+    .action(async (topicArg?: string) => {
+      const progress = await findCurrentTopic(topicArg);
       if (!progress) {
         console.log(chalk.red('No active learning path found. Use "learn start <topic>" to begin.'));
         return;
@@ -118,17 +170,54 @@ export function setupCommands(program: Command) {
     .command('status')
     .description('Show progress across all topics')
     .action(async () => {
-      // Simplified - would need to scan learning directory
-      console.log(chalk.bold('📊 Learning Progress\n'));
-      console.log(chalk.gray('Feature coming soon - will show progress for all topics'));
+      await showStatus();
+    });
+
+  // Current command
+  program
+    .command('current')
+    .description('Show the current active topic')
+    .action(async () => {
+      const activeTopic = await getActiveTopic();
+      
+      if (!activeTopic) {
+        console.log(chalk.yellow('No active topic. Use "learn start <topic>" to begin.'));
+        return;
+      }
+
+      const progress = await loadProgress(activeTopic);
+      const roadmap = await loadRoadmap(activeTopic);
+
+      if (!progress || !roadmap) {
+        console.log(chalk.red(`Topic "${activeTopic}" not found.`));
+        return;
+      }
+
+      const completed = Object.values(progress.stages).filter((s) => s.status === 'completed').length;
+      const total = Object.keys(progress.stages).length;
+      const percentage = Math.round((completed / total) * 100);
+      const currentStage = roadmap.stages[progress.currentStage - 1];
+
+      console.log(chalk.bold.cyan(`\n📍 Current Topic: ${activeTopic}\n`));
+      console.log(`  ${createProgressBar(percentage, 20)} ${completed}/${total} stages (${percentage}%)`);
+      
+      if (currentStage) {
+        console.log(chalk.bold(`\n  Stage ${progress.currentStage}: ${currentStage.title}`));
+        console.log(chalk.gray(`  ${currentStage.objective}`));
+        console.log(chalk.gray(`  Difficulty: ${currentStage.difficulty}`));
+      } else {
+        console.log(chalk.green('\n  🎉 All stages completed!'));
+      }
+
+      console.log(chalk.gray('\n  Use "learn switch" to change topics'));
     });
 
   // Run command
   program
-    .command('run')
-    .description('Run tests for the current stage')
-    .action(async () => {
-      const progress = await findCurrentTopic();
+    .command('run [topic]')
+    .description('Run tests for the current stage (optionally specify topic)')
+    .action(async (topicArg?: string) => {
+      const progress = await findCurrentTopic(topicArg);
       if (!progress) {
         console.log(chalk.red('No active learning path found. Use "learn start <topic>" to begin.'));
         return;
@@ -149,7 +238,7 @@ export function setupCommands(program: Command) {
       }
 
       const testPath = getTestPath(progress.topic, currentStage.id);
-      const spinner = ora('Running tests...').start();
+      const spinner = ora(`Running tests for ${progress.topic}...`).start();
 
       try {
         await incrementAttempts(progress.topic, currentStageNum);
@@ -180,10 +269,10 @@ export function setupCommands(program: Command) {
 
   // Hint command
   program
-    .command('hint')
-    .description('Get hints for the current stage')
-    .action(async () => {
-      const progress = await findCurrentTopic();
+    .command('hint [topic]')
+    .description('Get hints for the current stage (optionally specify topic)')
+    .action(async (topicArg?: string) => {
+      const progress = await findCurrentTopic(topicArg);
       if (!progress) {
         console.log(chalk.red('No active learning path found. Use "learn start <topic>" to begin.'));
         return;
@@ -216,41 +305,106 @@ export function setupCommands(program: Command) {
         console.log(chalk.yellow('Make sure you\'ve run "learn continue" first.'));
       }
     });
+
+  // Topics command (alias for status)
+  program
+    .command('topics')
+    .description('List all learning topics')
+    .action(async () => {
+      await showStatus();
+    });
 }
 
-async function findCurrentTopic(): Promise<{ topic: string; currentStage: number } | null> {
+async function showStatus(): Promise<void> {
+  const allProgress = await getAllTopicsProgress();
+  const activeTopic = await getActiveTopic();
+
+  if (allProgress.length === 0) {
+    console.log(chalk.yellow('No learning paths found. Use "learn start <topic>" to begin.'));
+    return;
+  }
+
+  console.log(chalk.bold('\n📊 Learning Progress\n'));
+
+  for (const progress of allProgress) {
+    const roadmap = await loadRoadmap(progress.topic);
+    const completed = Object.values(progress.stages).filter((s) => s.status === 'completed').length;
+    const total = Object.keys(progress.stages).length;
+    const percentage = Math.round((completed / total) * 100);
+    const isActive = progress.topic === activeTopic;
+
+    const progressBar = createProgressBar(percentage, 20, isActive);
+    
+    // Highlight active topic with cyan background/bold
+    if (isActive) {
+      console.log(chalk.bold.cyan(`▶ ${progress.topic}`) + chalk.cyan(' (active)'));
+    } else {
+      console.log(chalk.bold(`  ${progress.topic}`));
+    }
+    
+    console.log(`    ${progressBar} ${completed}/${total} stages (${percentage}%)`);
+    
+    if (roadmap && progress.currentStage <= roadmap.stages.length) {
+      const currentStage = roadmap.stages[progress.currentStage - 1];
+      const stageInfo = currentStage 
+        ? `Stage ${progress.currentStage} - ${currentStage.title}`
+        : 'Complete';
+      console.log(chalk.gray(`    Next: ${stageInfo}`));
+    } else {
+      console.log(chalk.green(`    ✓ Completed!`));
+    }
+    console.log();
+  }
+}
+
+function createProgressBar(percentage: number, width: number, isActive = false): string {
+  const filled = Math.round((percentage / 100) * width);
+  const empty = width - filled;
+  const color = isActive ? chalk.cyan : chalk.green;
+  const filledBar = color('█'.repeat(filled));
+  const emptyBar = chalk.gray('░'.repeat(empty));
+  return `[${filledBar}${emptyBar}]`;
+}
+
+async function findCurrentTopic(topicOverride?: string): Promise<{ topic: string; currentStage: number } | null> {
+  // If topic is specified, use that
+  if (topicOverride) {
+    const progress = await loadProgress(topicOverride);
+    if (progress) {
+      return { topic: progress.topic, currentStage: progress.currentStage };
+    }
+    return null;
+  }
+
+  // Otherwise, use the active topic
+  const activeTopic = await getActiveTopic();
+  if (activeTopic) {
+    const progress = await loadProgress(activeTopic);
+    if (progress) {
+      return { topic: progress.topic, currentStage: progress.currentStage };
+    }
+  }
+
+  // Fallback: find any topic with progress
   try {
     const topics = await readdir(LEARNING_DIR, { withFileTypes: true });
     const topicDirs = topics.filter((dirent) => dirent.isDirectory());
 
-    if (topicDirs.length === 0) {
-      return null;
-    }
-
-    // Find topics with progress.json
     for (const topicDir of topicDirs) {
       const progressPath = join(LEARNING_DIR, topicDir.name, 'progress.json');
       try {
         const progress = JSON.parse(await readFile(progressPath, 'utf-8'));
-        // Return the first active topic found
         if (progress.currentStage) {
-          return {
-            topic: progress.topic,
-            currentStage: progress.currentStage,
-          };
+          // Set this as active for future calls
+          await setActiveTopic(progress.topic);
+          return { topic: progress.topic, currentStage: progress.currentStage };
         }
       } catch {
-        // Skip if progress.json doesn't exist or is invalid
         continue;
       }
     }
-
     return null;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      return null;
-    }
-    throw error;
+  } catch {
+    return null;
   }
 }
-

@@ -1,11 +1,17 @@
-import { readFile, writeFile, mkdir } from 'fs/promises';
+import { readFile, writeFile, mkdir, readdir } from 'fs/promises';
 import { join } from 'path';
 import type { Progress, StageProgress } from '../types/index.js';
 
-const LEARNING_DIR = process.env.LEARNING_DIR || './learning';
+function getLearningDir(): string {
+  return process.env.LEARNING_DIR || './learning';
+}
+
+function getActiveTopicFile(): string {
+  return join(getLearningDir(), '.active-topic');
+}
 
 export async function getProgressPath(topic: string): Promise<string> {
-  return join(LEARNING_DIR, topic, 'progress.json');
+  return join(getLearningDir(), topic, 'progress.json');
 }
 
 export async function loadProgress(topic: string): Promise<Progress | null> {
@@ -23,7 +29,7 @@ export async function loadProgress(topic: string): Promise<Progress | null> {
 
 export async function saveProgress(progress: Progress): Promise<void> {
   const path = await getProgressPath(progress.topic);
-  const dir = join(LEARNING_DIR, progress.topic);
+  const dir = join(getLearningDir(), progress.topic);
   
   await mkdir(dir, { recursive: true });
   await writeFile(path, JSON.stringify(progress, null, 2), 'utf-8');
@@ -90,5 +96,39 @@ export async function incrementAttempts(topic: string, stageNumber: number): Pro
 export async function getCurrentStage(topic: string): Promise<number | null> {
   const progress = await loadProgress(topic);
   return progress?.currentStage || null;
+}
+
+export async function setActiveTopic(topic: string): Promise<void> {
+  await mkdir(getLearningDir(), { recursive: true });
+  await writeFile(getActiveTopicFile(), topic, 'utf-8');
+}
+
+export async function getActiveTopic(): Promise<string | null> {
+  try {
+    const topic = await readFile(getActiveTopicFile(), 'utf-8');
+    return topic.trim();
+  } catch {
+    return null;
+  }
+}
+
+export async function getAllTopicsProgress(): Promise<Progress[]> {
+  try {
+    const entries = await readdir(getLearningDir(), { withFileTypes: true });
+    const topicDirs = entries.filter((e) => e.isDirectory());
+    
+    const progressList: Progress[] = [];
+    
+    for (const dir of topicDirs) {
+      const progress = await loadProgress(dir.name);
+      if (progress) {
+        progressList.push(progress);
+      }
+    }
+    
+    return progressList;
+  } catch {
+    return [];
+  }
 }
 
