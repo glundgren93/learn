@@ -1,5 +1,6 @@
 import type { Command } from 'commander';
 import {
+	registerAskCommand,
 	registerCompletionCommand,
 	registerContinueCommand,
 	registerCurrentCommand,
@@ -21,6 +22,7 @@ export function setupCommands(program: Command): void {
 	registerFilesCommand(program);
 	registerRunCommand(program);
 	registerHintCommand(program);
+	registerAskCommand(program);
 	registerTopicsCommand(program);
 	registerCompletionCommand(program);
 }

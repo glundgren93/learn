@@ -19,6 +19,7 @@ function getOpenAI(): OpenAI {
 }
 
 export const model = process.env.OPENAI_MODEL || 'gpt-4o';
+export const askModel = process.env.OPEN_AI_MODEL_ASK_MODE || 'gpt-4o';
 
 /**
  * Call OpenAI with structured output using Zod schema
