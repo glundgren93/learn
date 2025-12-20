@@ -11,7 +11,6 @@ describe('Lesson Schema', () => {
 		const validLesson = {
 			stageId: 'stage-1',
 			theory: '# Theory\n\nThis is the theory content.',
-			keyTakeaways: ['Takeaway 1', 'Takeaway 2', 'Takeaway 3'],
 			testCases: [
 				createTestCase(1),
 				createTestCase(2),
@@ -31,7 +30,6 @@ describe('Lesson Schema', () => {
 		const invalidLesson = {
 			stageId: 'stage-1',
 			theory: 'Theory',
-			keyTakeaways: ['Takeaway 1', 'Takeaway 2', 'Takeaway 3'],
 			testCases: [createTestCase(1)],
 			starterCode: 'export function solution() {}',
 			hints: ['Hint 1', 'Hint 2', 'Hint 3'],
@@ -45,7 +43,6 @@ describe('Lesson Schema', () => {
 		const invalidLesson = {
 			stageId: 'stage-1',
 			theory: 'Theory',
-			keyTakeaways: ['Takeaway 1', 'Takeaway 2', 'Takeaway 3'],
 			testCases: [
 				createTestCase(1),
 				createTestCase(2),
@@ -55,26 +52,6 @@ describe('Lesson Schema', () => {
 			],
 			starterCode: 'export function solution() {}',
 			hints: ['Hint 1', 'Hint 2'], // Only 2 hints
-		};
-
-		const result = LessonSchema.safeParse(invalidLesson);
-		expect(result.success).toBe(false);
-	});
-
-	it('should reject lesson with less than 3 key takeaways', () => {
-		const invalidLesson = {
-			stageId: 'stage-1',
-			theory: 'Theory',
-			keyTakeaways: ['Takeaway 1'],
-			testCases: [
-				createTestCase(1),
-				createTestCase(2),
-				createTestCase(3),
-				createTestCase(4),
-				createTestCase(5),
-			],
-			starterCode: 'export function solution() {}',
-			hints: ['Hint 1', 'Hint 2', 'Hint 3'],
 		};
 
 		const result = LessonSchema.safeParse(invalidLesson);

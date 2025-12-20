@@ -22,7 +22,6 @@ export const TestCaseSchema = z.object({
 export const LessonSchema = z.object({
 	stageId: z.string(),
 	theory: z.string().describe('Markdown content explaining concepts, 300-500 words'),
-	keyTakeaways: z.array(z.string()).min(3).max(5),
 	testCases: z
 		.array(TestCaseSchema)
 		.min(5)

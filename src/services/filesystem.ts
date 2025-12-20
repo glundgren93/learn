@@ -56,10 +56,6 @@ export async function saveLesson(topic: string, stageId: string, lesson: Lesson)
 	// Save hints
 	const hintsPath = join(stageDir, 'hints.json');
 	await writeFile(hintsPath, JSON.stringify(lesson.hints, null, 2), 'utf-8');
-
-	// Save key takeaways
-	const takeawaysPath = join(stageDir, 'takeaways.json');
-	await writeFile(takeawaysPath, JSON.stringify(lesson.keyTakeaways, null, 2), 'utf-8');
 }
 
 function generateTestFile(lesson: Lesson): string {
@@ -98,20 +94,17 @@ export async function loadLesson(topic: string, stageId: string): Promise<Lesson
 
 		const readmePath = join(stageDir, 'README.md');
 		const hintsPath = join(stageDir, 'hints.json');
-		const takeawaysPath = join(stageDir, 'takeaways.json');
 		const solutionPath = join(stageDir, 'solution.ts');
 		const testPath = join(stageDir, 'tests', 'solution.test.ts');
 
-		const [theory, hintsJson, takeawaysJson, starterCode, testContent] = await Promise.all([
+		const [theory, hintsJson, starterCode, testContent] = await Promise.all([
 			readFile(readmePath, 'utf-8'),
 			readFile(hintsPath, 'utf-8'),
-			readFile(takeawaysPath, 'utf-8'),
 			readFile(solutionPath, 'utf-8'),
 			readFile(testPath, 'utf-8'),
 		]);
 
 		const hints = JSON.parse(hintsJson) as string[];
-		const keyTakeaways = JSON.parse(takeawaysJson) as string[];
 
 		// Parse test cases from test file (simplified - assumes format)
 		const testCases = parseTestCases(testContent);
@@ -119,7 +112,6 @@ export async function loadLesson(topic: string, stageId: string): Promise<Lesson
 		return {
 			stageId,
 			theory,
-			keyTakeaways,
 			testCases,
 			starterCode,
 			hints,
