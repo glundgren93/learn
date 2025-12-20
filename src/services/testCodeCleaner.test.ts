@@ -110,5 +110,31 @@ expect(q.dequeue()).toBe(2);`;
 			const cleaned = cleanTestCode(code);
 			expect(cleaned).toBe(code);
 		});
+
+		it("does not prefix built-in globals like Promise, Map, Set", () => {
+			const code = `const p = new Promise((resolve) => setTimeout(resolve, 100));
+const m = new Map<string, number>();
+const s = new Set<string>();
+await p;`;
+
+			const cleaned = cleanTestCode(code);
+			expect(cleaned).toContain("new Promise(");
+			expect(cleaned).toContain("new Map<");
+			expect(cleaned).toContain("new Set<");
+			expect(cleaned).not.toContain("solution.Promise");
+			expect(cleaned).not.toContain("solution.Map");
+			expect(cleaned).not.toContain("solution.Set");
+		});
+
+		it("prefixes user classes but not built-in globals in the same code", () => {
+			const code = `const q = new Queue<number>();
+const p = new Promise((r) => setTimeout(r, 50));
+await p;`;
+
+			const cleaned = cleanTestCode(code);
+			expect(cleaned).toContain("new solution.Queue<number>()");
+			expect(cleaned).toContain("new Promise(");
+			expect(cleaned).not.toContain("solution.Promise");
+		});
 	});
 });

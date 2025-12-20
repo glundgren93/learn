@@ -1,12 +1,13 @@
-.PHONY: help install build test test-watch clean dev format lint check fix
+.PHONY: help install build test test-watch test-learning clean dev format lint check fix
 
 # Default target
 help:
 	@echo "Available targets:"
 	@echo "  make install      - Install dependencies"
 	@echo "  make build        - Build TypeScript project"
-	@echo "  make test         - Run tests"
+	@echo "  make test         - Run tests under src/"
 	@echo "  make test-watch   - Run tests in watch mode"
+	@echo "  make test-learning - Run tests under learning/"
 	@echo "  make clean        - Remove build artifacts and node_modules"
 	@echo "  make dev          - Run in development mode"
 	@echo "  make format       - Format code with Prettier"
@@ -22,9 +23,13 @@ install:
 build:
 	npm run build
 
-# Run tests
+# Run tests under src/
 test:
-	npm run test:run
+	npx vitest run src/
+
+# Run tests under learning/
+test-learning:
+	npx vitest run learning/
 
 # Run tests in watch mode
 test-watch:

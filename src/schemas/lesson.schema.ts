@@ -12,11 +12,7 @@ export const TestCaseSchema = z.object({
 		.transform((code) => {
 			// Auto-fix testCode if it contains forbidden patterns
 			if (needsCleaning(code)) {
-				console.log("[testCodeCleaner] Cleaning testCode...");
-				const cleaned = cleanTestCode(code);
-				console.log("[testCodeCleaner] Before:", code.substring(0, 100));
-				console.log("[testCodeCleaner] After:", cleaned.substring(0, 100));
-				return cleaned;
+				return cleanTestCode(code);
 			}
 			return code;
 		})
