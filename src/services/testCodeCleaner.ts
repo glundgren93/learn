@@ -23,7 +23,7 @@ export function cleanTestCode(testCode: string): string {
 	let code = testCode;
 
 	// Remove import statements
-	code = code.replace(/^import\s+.*?[;\n]/gm, "");
+	code = code.replace(/^import\s+.*?[;\n]/gm, '');
 
 	// Find the innermost it/test block and extract its body
 	const innerBody = extractInnermostTestBody(code);
@@ -38,19 +38,19 @@ export function cleanTestCode(testCode: string): string {
 	}
 
 	// Clean up any remaining describe/it/test calls at the start
-	code = code.replace(/^\s*(describe|it|test)\s*\([^)]*,\s*\(\)\s*=>\s*\{/gm, "");
+	code = code.replace(/^\s*(describe|it|test)\s*\([^)]*,\s*\(\)\s*=>\s*\{/gm, '');
 
 	// Remove trailing }); that close describe/it/test blocks
-	code = code.replace(/\}\s*\)\s*;?\s*$/g, "");
+	code = code.replace(/\}\s*\)\s*;?\s*$/g, '');
 
 	// Fix solution references: Queue -> solution.Queue
 	code = fixSolutionReferences(code);
 
 	// Clean up whitespace
 	code = code
-		.split("\n")
+		.split('\n')
 		.map((line) => line.trimEnd())
-		.join("\n")
+		.join('\n')
 		.trim();
 
 	return code;
@@ -98,9 +98,9 @@ function extractBracedContent(code: string, startIndex: number): string | null {
 	let endIndex = startIndex;
 
 	for (let i = startIndex; i < code.length; i++) {
-		if (code[i] === "{") {
+		if (code[i] === '{') {
 			depth++;
-		} else if (code[i] === "}") {
+		} else if (code[i] === '}') {
 			depth--;
 			if (depth === 0) {
 				endIndex = i;
@@ -118,48 +118,48 @@ function extractBracedContent(code: string, startIndex: number): string | null {
 
 // Built-in globals that should NOT be prefixed with solution.
 const BUILTIN_GLOBALS = new Set([
-	"Promise",
-	"Map",
-	"Set",
-	"WeakMap",
-	"WeakSet",
-	"Array",
-	"Object",
-	"Error",
-	"TypeError",
-	"RangeError",
-	"SyntaxError",
-	"Date",
-	"RegExp",
-	"URL",
-	"URLSearchParams",
-	"FormData",
-	"Blob",
-	"File",
-	"Headers",
-	"Request",
-	"Response",
-	"AbortController",
-	"AbortSignal",
-	"Event",
-	"EventTarget",
-	"CustomEvent",
-	"Int8Array",
-	"Uint8Array",
-	"Uint8ClampedArray",
-	"Int16Array",
-	"Uint16Array",
-	"Int32Array",
-	"Uint32Array",
-	"Float32Array",
-	"Float64Array",
-	"BigInt64Array",
-	"BigUint64Array",
-	"ArrayBuffer",
-	"SharedArrayBuffer",
-	"DataView",
-	"TextEncoder",
-	"TextDecoder",
+	'Promise',
+	'Map',
+	'Set',
+	'WeakMap',
+	'WeakSet',
+	'Array',
+	'Object',
+	'Error',
+	'TypeError',
+	'RangeError',
+	'SyntaxError',
+	'Date',
+	'RegExp',
+	'URL',
+	'URLSearchParams',
+	'FormData',
+	'Blob',
+	'File',
+	'Headers',
+	'Request',
+	'Response',
+	'AbortController',
+	'AbortSignal',
+	'Event',
+	'EventTarget',
+	'CustomEvent',
+	'Int8Array',
+	'Uint8Array',
+	'Uint8ClampedArray',
+	'Int16Array',
+	'Uint16Array',
+	'Int32Array',
+	'Uint32Array',
+	'Float32Array',
+	'Float64Array',
+	'BigInt64Array',
+	'BigUint64Array',
+	'ArrayBuffer',
+	'SharedArrayBuffer',
+	'DataView',
+	'TextEncoder',
+	'TextDecoder',
 ]);
 
 /**
@@ -184,12 +184,7 @@ function fixSolutionReferences(code: string): string {
  * Checks if testCode needs cleaning (contains forbidden patterns).
  */
 export function needsCleaning(testCode: string): boolean {
-	const forbiddenPatterns = [
-		/^import\s+/m,
-		/\bdescribe\s*\(/,
-		/\bit\s*\(/,
-		/\btest\s*\(/,
-	];
+	const forbiddenPatterns = [/^import\s+/m, /\bdescribe\s*\(/, /\bit\s*\(/, /\btest\s*\(/];
 
 	return forbiddenPatterns.some((pattern) => pattern.test(testCode));
 }

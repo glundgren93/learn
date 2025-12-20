@@ -1,4 +1,4 @@
-import { cleanTestCode, needsCleaning } from "../src/services/testCodeCleaner.js";
+import { cleanTestCode, needsCleaning } from '../src/services/testCodeCleaner.js';
 
 const badCode = `import { describe, it, expect } from 'vitest';
 import { LinkedListQueue } from './LinkedListQueue';
@@ -14,6 +14,6 @@ describe('LinkedListQueue', () => {
   });
 });`;
 
-console.log("Needs cleaning:", needsCleaning(badCode));
-console.log("\n--- Cleaned output ---\n");
+console.log('Needs cleaning:', needsCleaning(badCode));
+console.log('\n--- Cleaned output ---\n');
 console.log(cleanTestCode(badCode));

@@ -1,2 +1,2 @@
-export { createProgressBar } from "./progressBar.js";
-export { findCurrentTopic, type CurrentTopic } from "./topicResolver.js";
+export { createProgressBar } from './progressBar.js';
+export { type CurrentTopic, findCurrentTopic } from './topicResolver.js';

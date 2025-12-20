@@ -1,31 +1,27 @@
-import chalk from "chalk";
-import type { Command } from "commander";
-import ora from "ora";
-import { getTestPath, loadRoadmap } from "../../services/filesystem.js";
-import { incrementAttempts, markStageComplete } from "../../services/progress.js";
-import { runTests } from "../../services/testRunner.js";
-import { findCurrentTopic } from "../utils/index.js";
+import chalk from 'chalk';
+import type { Command } from 'commander';
+import ora from 'ora';
+import { getTestPath, loadRoadmap } from '../../services/filesystem.js';
+import { incrementAttempts, markStageComplete } from '../../services/progress.js';
+import { runTests } from '../../services/testRunner.js';
+import { findCurrentTopic } from '../utils/index.js';
 
 export function registerRunCommand(program: Command): void {
 	program
-		.command("run [topic]")
-		.description("Run tests for the current stage (optionally specify topic)")
+		.command('run [topic]')
+		.description('Run tests for the current stage (optionally specify topic)')
 		.action(async (topicArg?: string) => {
 			const progress = await findCurrentTopic(topicArg);
 			if (!progress) {
 				console.log(
-					chalk.red(
-						'No active learning path found. Use "learn start <topic>" to begin.',
-					),
+					chalk.red('No active learning path found. Use "learn start <topic>" to begin.')
 				);
 				return;
 			}
 
 			const roadmap = await loadRoadmap(progress.topic);
 			if (!roadmap) {
-				console.log(
-					chalk.red(`Roadmap not found for topic: ${progress.topic}`),
-				);
+				console.log(chalk.red(`Roadmap not found for topic: ${progress.topic}`));
 				return;
 			}
 
@@ -33,7 +29,7 @@ export function registerRunCommand(program: Command): void {
 			const currentStage = roadmap.stages[currentStageNum - 1];
 
 			if (!currentStage) {
-				console.log(chalk.green("🎉 All stages completed!"));
+				console.log(chalk.green('🎉 All stages completed!'));
 				return;
 			}
 
@@ -45,21 +41,17 @@ export function registerRunCommand(program: Command): void {
 				const result = await runTests(testPath);
 
 				if (result.passed) {
-					spinner.succeed(chalk.green("All tests passed! 🎉"));
+					spinner.succeed(chalk.green('All tests passed! 🎉'));
 					await markStageComplete(progress.topic, currentStageNum);
-					console.log(
-						chalk.bold(
-							'\n✨ Great job! Run "learn continue" for the next lesson.',
-						),
-					);
+					console.log(chalk.bold('\n✨ Great job! Run "learn continue" for the next lesson.'));
 				} else {
-					spinner.fail(chalk.red("Some tests failed"));
-					console.log(chalk.red("\nFailed tests:"));
+					spinner.fail(chalk.red('Some tests failed'));
+					console.log(chalk.red('\nFailed tests:'));
 					result.failedTests.forEach((test) => {
 						console.log(chalk.red(`  × ${test}`));
 					});
 					if (result.errorMessages.length > 0) {
-						console.log(chalk.yellow("\nErrors:"));
+						console.log(chalk.yellow('\nErrors:'));
 						result.errorMessages.forEach((msg) => {
 							console.log(chalk.yellow(`  ${msg}`));
 						});
@@ -68,7 +60,7 @@ export function registerRunCommand(program: Command): void {
 				}
 			} catch (error) {
 				spinner.fail(
-					`Failed to run tests: ${error instanceof Error ? error.message : String(error)}`,
+					`Failed to run tests: ${error instanceof Error ? error.message : String(error)}`
 				);
 			}
 		});

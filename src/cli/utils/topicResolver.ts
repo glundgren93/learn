@@ -1,21 +1,15 @@
-import { readdir, readFile } from "fs/promises";
-import { join } from "path";
-import {
-	getActiveTopic,
-	loadProgress,
-	setActiveTopic,
-} from "../../services/progress.js";
+import { readdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { getActiveTopic, loadProgress, setActiveTopic } from '../../services/progress.js';
 
-const LEARNING_DIR = process.env.LEARNING_DIR || "./learning";
+const LEARNING_DIR = process.env.LEARNING_DIR || './learning';
 
 export interface CurrentTopic {
 	topic: string;
 	currentStage: number;
 }
 
-export async function findCurrentTopic(
-	topicOverride?: string,
-): Promise<CurrentTopic | null> {
+export async function findCurrentTopic(topicOverride?: string): Promise<CurrentTopic | null> {
 	// If topic is specified, use that
 	if (topicOverride) {
 		const progress = await loadProgress(topicOverride);
@@ -40,9 +34,9 @@ export async function findCurrentTopic(
 		const topicDirs = topics.filter((dirent) => dirent.isDirectory());
 
 		for (const topicDir of topicDirs) {
-			const progressPath = join(LEARNING_DIR, topicDir.name, "progress.json");
+			const progressPath = join(LEARNING_DIR, topicDir.name, 'progress.json');
 			try {
-				const progress = JSON.parse(await readFile(progressPath, "utf-8"));
+				const progress = JSON.parse(await readFile(progressPath, 'utf-8'));
 				if (progress.currentStage) {
 					// Set this as active for future calls
 					await setActiveTopic(progress.topic);

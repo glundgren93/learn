@@ -1,9 +1,9 @@
-import type { Command } from "commander";
+import type { Command } from 'commander';
 
 export function registerCompletionCommand(program: Command): void {
 	program
-		.command("completion")
-		.description("Output shell completion script for zsh")
+		.command('completion')
+		.description('Output shell completion script for zsh')
 		.action(() => {
 			const script = `###-begin-learn-completion-###
 _learn() {

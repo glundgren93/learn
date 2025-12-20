@@ -1,4 +1,4 @@
-import type { Command } from "commander";
+import type { Command } from 'commander';
 import {
 	registerCompletionCommand,
 	registerContinueCommand,
@@ -9,7 +9,7 @@ import {
 	registerStatusCommand,
 	registerSwitchCommand,
 	registerTopicsCommand,
-} from "./commands/index.js";
+} from './commands/index.js';
 
 export function setupCommands(program: Command): void {
 	registerStartCommand(program);
