@@ -116,25 +116,68 @@ function extractBracedContent(code: string, startIndex: number): string | null {
 	return code.slice(startIndex, endIndex);
 }
 
+// Built-in globals that should NOT be prefixed with solution.
+const BUILTIN_GLOBALS = new Set([
+	"Promise",
+	"Map",
+	"Set",
+	"WeakMap",
+	"WeakSet",
+	"Array",
+	"Object",
+	"Error",
+	"TypeError",
+	"RangeError",
+	"SyntaxError",
+	"Date",
+	"RegExp",
+	"URL",
+	"URLSearchParams",
+	"FormData",
+	"Blob",
+	"File",
+	"Headers",
+	"Request",
+	"Response",
+	"AbortController",
+	"AbortSignal",
+	"Event",
+	"EventTarget",
+	"CustomEvent",
+	"Int8Array",
+	"Uint8Array",
+	"Uint8ClampedArray",
+	"Int16Array",
+	"Uint16Array",
+	"Int32Array",
+	"Uint32Array",
+	"Float32Array",
+	"Float64Array",
+	"BigInt64Array",
+	"BigUint64Array",
+	"ArrayBuffer",
+	"SharedArrayBuffer",
+	"DataView",
+	"TextEncoder",
+	"TextDecoder",
+]);
+
 /**
  * Fixes references to use the solution namespace.
  * e.g., `new Queue()` -> `new solution.Queue()`
  */
 function fixSolutionReferences(code: string): string {
-	// Common class names that should be prefixed with solution.
-	// Only fix if not already prefixed
-	const classPatterns = [
-		/\bnew\s+(?!solution\.)([A-Z][a-zA-Z]*)\s*[<(]/g,
-	];
+	// Match: new ClassName< or new ClassName(
+	// Only fix if not already prefixed with solution.
+	const pattern = /\bnew\s+(?!solution\.)([A-Z][a-zA-Z]*)\s*[<(]/g;
 
-	let fixed = code;
-	for (const pattern of classPatterns) {
-		fixed = fixed.replace(pattern, (match, className) => {
-			return match.replace(className, `solution.${className}`);
-		});
-	}
-
-	return fixed;
+	return code.replace(pattern, (match, className) => {
+		// Don't prefix built-in globals
+		if (BUILTIN_GLOBALS.has(className)) {
+			return match;
+		}
+		return match.replace(className, `solution.${className}`);
+	});
 }
 
 /**

@@ -71,17 +71,21 @@ function fixTestFile(content: string): string {
 			const rawBody = bodyLines.join("\n");
 			const cleanedBody = cleanTestCode(rawBody);
 			
-			// Rebuild the it block with proper indentation
-			const bodyIndent = indent + "    ";
-			const indentedBody = cleanedBody
-				.split("\n")
-				.map(l => l.trim() ? bodyIndent + l : l)
-				.join("\n");
-			
-			result.push(`${indent}it('${description}', () => {`);
-			result.push(indentedBody);
-			result.push(`${indent}});`);
-			result.push("");
+		// Rebuild the it block with proper indentation
+		const bodyIndent = indent + "    ";
+		const indentedBody = cleanedBody
+			.split("\n")
+			.map(l => l.trim() ? bodyIndent + l : l)
+			.join("\n");
+
+		// Detect if the body uses await and make callback async
+		const isAsync = /\bawait\s/.test(cleanedBody);
+		const callbackSignature = isAsync ? "async () =>" : "() =>";
+
+		result.push(`${indent}it('${description}', ${callbackSignature} {`);
+		result.push(indentedBody);
+		result.push(`${indent}});`);
+		result.push("");
 		} else {
 			result.push(line);
 			i++;
