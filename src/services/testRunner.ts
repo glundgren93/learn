@@ -7,16 +7,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, '../..');
 
-export interface FailedTest {
+export interface TestCase {
 	name: string;
-	error: string;
+	passed: boolean;
+	error?: string;
 	expected?: string;
 	received?: string;
 }
 
 export interface TestResult {
 	passed: boolean;
-	failedTests: FailedTest[];
+	tests: TestCase[];
 }
 
 export async function runTests(testFile: string): Promise<TestResult> {
@@ -25,16 +26,16 @@ export async function runTests(testFile: string): Promise<TestResult> {
 	if (!existsSync(testFileAbs)) {
 		return {
 			passed: false,
-			failedTests: [{ name: 'Test file not found', error: `Test file does not exist: ${testFileAbs}` }],
+			tests: [{ name: 'Test file not found', passed: false, error: `Test file does not exist: ${testFileAbs}` }],
 		};
 	}
 
 	return new Promise<TestResult>((promiseResolve) => {
-		const failedTests: FailedTest[] = [];
+		const tests: TestCase[] = [];
 		let output = '';
 
-		// Run vitest with the specific test file
-		const vitest: ChildProcess = spawn('npx', ['vitest', 'run', testFileAbs], {
+		// Run vitest with verbose reporter to see all test results (passed and failed)
+		const vitest: ChildProcess = spawn('npx', ['vitest', 'run', '--reporter=verbose', testFileAbs], {
 			cwd: PROJECT_ROOT,
 			stdio: ['ignore', 'pipe', 'pipe'],
 			shell: true,
@@ -49,71 +50,80 @@ export async function runTests(testFile: string): Promise<TestResult> {
 		});
 
 		vitest.on('close', (code: number | null) => {
-			const passed = code === 0;
+			const allPassed = code === 0;
+			const lines = output.split('\n');
 
-			// Parse output for failed tests
-			if (!passed) {
-				const lines = output.split('\n');
-				let currentTest: FailedTest | null = null;
-
-				for (let i = 0; i < lines.length; i++) {
-					const line = lines[i];
-
-					// Capture FAIL blocks - start of a new failed test
-					if (line.includes('FAIL') && line.includes('>')) {
-						// Save previous test if exists
-						if (currentTest) {
-							failedTests.push(currentTest);
-						}
-						// Extract just the test name from the FAIL line
-						const testNameMatch = line.match(/>\s*(.+)$/);
-						if (testNameMatch) {
-							currentTest = { name: testNameMatch[1].trim(), error: '' };
-						}
+			// First pass: collect passed tests from verbose output
+			// Format: " ✓ path/to/file.ts > Suite > test name"
+			for (const line of lines) {
+				if (line.includes('✓') && line.includes('>')) {
+					// Extract just the test name (after the last >)
+					const testNameMatch = line.match(/>\s*([^>]+)$/);
+					if (testNameMatch) {
+						const cleanName = testNameMatch[1].trim();
+						tests.push({ name: cleanName, passed: true });
 					}
-
-					// Capture assertion errors
-					if (currentTest && line.includes('AssertionError:')) {
-						currentTest.error = line.replace(/^.*AssertionError:\s*/, '').trim();
-					}
-
-					// Capture expected/received values
-					if (currentTest) {
-						const expectedMatch = line.match(/Expected[:\s]+(.+)/i);
-						const receivedMatch = line.match(/Received[:\s]+(.+)/i);
-						if (expectedMatch) {
-							currentTest.expected = expectedMatch[1].trim();
-						}
-						if (receivedMatch) {
-							currentTest.received = receivedMatch[1].trim();
-						}
-					}
-
-					// Capture other error types
-					if (currentTest && !currentTest.error) {
-						const errorMatch = line.match(/(TypeError|ReferenceError|Error):\s*(.+)/);
-						if (errorMatch) {
-							currentTest.error = `${errorMatch[1]}: ${errorMatch[2]}`;
-						}
-					}
-				}
-
-				// Don't forget the last test
-				if (currentTest) {
-					failedTests.push(currentTest);
 				}
 			}
 
+			// Second pass: collect error details for failed tests
+			let currentFailedTest: TestCase | null = null;
+
+			for (const line of lines) {
+				// Capture FAIL blocks - start of a new failed test's details
+				if (line.includes('FAIL') && line.includes('>')) {
+					// Save previous test if exists
+					if (currentFailedTest) {
+						tests.push(currentFailedTest);
+					}
+					// Extract just the test name from the FAIL line
+					const testNameMatch = line.match(/>\s*(.+)$/);
+					if (testNameMatch) {
+						currentFailedTest = { name: testNameMatch[1].trim(), passed: false };
+					}
+				}
+
+				// Capture assertion errors
+				if (currentFailedTest && line.includes('AssertionError:')) {
+					currentFailedTest.error = line.replace(/^.*AssertionError:\s*/, '').trim();
+				}
+
+				// Capture expected/received values
+				if (currentFailedTest) {
+					const expectedMatch = line.match(/Expected[:\s]+(.+)/i);
+					const receivedMatch = line.match(/Received[:\s]+(.+)/i);
+					if (expectedMatch) {
+						currentFailedTest.expected = expectedMatch[1].trim();
+					}
+					if (receivedMatch) {
+						currentFailedTest.received = receivedMatch[1].trim();
+					}
+				}
+
+				// Capture other error types
+				if (currentFailedTest && !currentFailedTest.error) {
+					const errorMatch = line.match(/(TypeError|ReferenceError|Error):\s*(.+)/);
+					if (errorMatch) {
+						currentFailedTest.error = `${errorMatch[1]}: ${errorMatch[2]}`;
+					}
+				}
+			}
+
+			// Don't forget the last failed test
+			if (currentFailedTest) {
+				tests.push(currentFailedTest);
+			}
+
 			promiseResolve({
-				passed,
-				failedTests,
+				passed: allPassed,
+				tests,
 			});
 		});
 
 		vitest.on('error', (error: Error) => {
 			promiseResolve({
 				passed: false,
-				failedTests: [{ name: 'Test execution failed', error: error.message }],
+				tests: [{ name: 'Test execution failed', passed: false, error: error.message }],
 			});
 		});
 	});
