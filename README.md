@@ -44,12 +44,7 @@ learn run                    # Run tests to check your solution
 learn run --stage stage-2    # Rerun tests for a specific stage
 learn hint                   # Get hints if you're stuck
 learn ask                    # Open AI chat to discuss the current stage
-```
-
-### Viewing Stage Files
-
-```bash
-learn files                  # List files for current stage (clickable paths)
+learn current                # View current stage info and files
 ```
 
 ### Managing Multiple Topics
@@ -80,7 +75,7 @@ learn hint binary-trees      # Get hints for binary-trees topic
 | `learn run --stage <id>` | Run tests for a specific stage (e.g., `stage-2` or `linked-list-queue-impl`) |
 | `learn hint [topic]` | Get progressive hints |
 | `learn ask [topic]` | Open interactive AI chat to discuss the current stage |
-| `learn files` | List files for current stage (clickable in terminal) |
+| `learn current` | Show current topic, stage info, and files (clickable) |
 | `learn status` | Show progress for all topics |
 | `learn switch [topic]` | Switch active topic |
 | `learn topics` | Alias for `learn status` |
