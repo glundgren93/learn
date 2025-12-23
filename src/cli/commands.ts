@@ -4,7 +4,6 @@ import {
 	registerCompletionCommand,
 	registerContinueCommand,
 	registerCurrentCommand,
-	registerFilesCommand,
 	registerHintCommand,
 	registerRunCommand,
 	registerStartCommand,
@@ -19,7 +18,6 @@ export function setupCommands(program: Command): void {
 	registerContinueCommand(program);
 	registerStatusCommand(program);
 	registerCurrentCommand(program);
-	registerFilesCommand(program);
 	registerRunCommand(program);
 	registerHintCommand(program);
 	registerAskCommand(program);
