@@ -21,8 +21,8 @@ const PACKAGE_JSON_TEMPLATE = (name: string, learnCliDep: string) => ({
 	},
 	devDependencies: {
 		'learn-cli': learnCliDep,
-		typescript: '^5.3.0',
-		vitest: '^2.0.0',
+		typescript: '^5.9.3',
+		vitest: '^4.0.0',
 	},
 });
 
@@ -223,9 +223,12 @@ export function registerInitCommand(program: Command): void {
 				console.log(chalk.yellow('\n⚠️  Using local learn-cli from:'));
 				console.log(chalk.yellow(`   ${CLI_PROJECT_ROOT}`));
 			} catch (error) {
-				console.log(chalk.red(`Failed to create project: ${error instanceof Error ? error.message : String(error)}`));
+				console.log(
+					chalk.red(
+						`Failed to create project: ${error instanceof Error ? error.message : String(error)}`
+					)
+				);
 				process.exit(1);
 			}
 		});
 }
-

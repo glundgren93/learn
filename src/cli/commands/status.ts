@@ -42,7 +42,6 @@ export async function showStatus(): Promise<void> {
 		} else {
 			console.log(chalk.green(`    ✓ Completed!`));
 		}
-		console.log();
 	}
 }
 

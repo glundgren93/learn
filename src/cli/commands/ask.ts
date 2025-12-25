@@ -4,7 +4,11 @@ import chalk from 'chalk';
 import type { Command } from 'commander';
 import { model } from '../../agent/client.js';
 import { getStageDir, loadRoadmap } from '../../services/filesystem.js';
-import { findCurrentTopic } from '../utils/index.js';
+import {
+	handleContextError,
+	loadLearningContext,
+	showCompletedMessage,
+} from '../middleware/index.js';
 
 interface Message {
 	role: 'system' | 'user' | 'assistant';
@@ -131,29 +135,18 @@ export function registerAskCommand(program: Command): void {
 		.command('ask [topic]')
 		.description('Open an interactive chat to discuss the current stage with AI')
 		.action(async (topicArg?: string) => {
-			const progress = await findCurrentTopic(topicArg);
-			if (!progress) {
-				console.log(
-					chalk.red('No active learning path found. Use "learn start <topic>" to begin.')
-				);
-				return;
-			}
+			const result = await loadLearningContext(topicArg);
+			if (handleContextError(result)) return;
 
-			const roadmap = await loadRoadmap(progress.topic);
-			if (!roadmap) {
-				console.log(chalk.red(`Roadmap not found for topic: ${progress.topic}`));
-				return;
-			}
-
-			const currentStageNum = progress.currentStage;
-			const currentStage = roadmap.stages[currentStageNum - 1];
+			const { progress, currentStage, stageNumber } = result.context;
 
 			if (!currentStage) {
-				console.log(chalk.green('🎉 All stages completed! Nothing to ask about.'));
+				showCompletedMessage();
+				console.log(chalk.dim('Nothing to ask about.'));
 				return;
 			}
 
-			const context = await loadStageContext(progress.topic, currentStageNum);
+			const context = await loadStageContext(progress.topic, stageNumber);
 			if (!context) {
 				console.log(
 					chalk.red('Failed to load stage context. Make sure you\'ve run "learn continue" first.')
@@ -171,7 +164,7 @@ export function registerAskCommand(program: Command): void {
 			);
 			console.log(chalk.bold.cyan('└──────────────────────────────────────────────────────────┘'));
 			console.log(
-				chalk.dim(`\nTopic: ${progress.topic} | Stage ${currentStageNum}: ${currentStage.title}`)
+				chalk.dim(`\nTopic: ${progress.topic} | Stage ${stageNumber}: ${currentStage.title}`)
 			);
 			console.log(
 				chalk.dim('Ask questions about the current stage. Type "exit" or "quit" to leave.\n')

@@ -1,33 +1,24 @@
 import { readFile } from 'node:fs/promises';
 import chalk from 'chalk';
 import type { Command } from 'commander';
-import { loadRoadmap } from '../../services/filesystem.js';
-import { findCurrentTopic } from '../utils/index.js';
+import {
+	handleContextError,
+	loadLearningContext,
+	showCompletedMessage,
+} from '../middleware/index.js';
 
 export function registerHintCommand(program: Command): void {
 	program
 		.command('hint [topic]')
 		.description('Get hints for the current stage (optionally specify topic)')
 		.action(async (topicArg?: string) => {
-			const progress = await findCurrentTopic(topicArg);
-			if (!progress) {
-				console.log(
-					chalk.red('No active learning path found. Use "learn start <topic>" to begin.')
-				);
-				return;
-			}
+			const result = await loadLearningContext(topicArg);
+			if (handleContextError(result)) return;
 
-			const roadmap = await loadRoadmap(progress.topic);
-			if (!roadmap) {
-				console.log(chalk.red(`Roadmap not found for topic: ${progress.topic}`));
-				return;
-			}
-
-			const currentStageNum = progress.currentStage;
-			const currentStage = roadmap.stages[currentStageNum - 1];
+			const { progress, currentStage } = result.context;
 
 			if (!currentStage) {
-				console.log(chalk.green('🎉 All stages completed!'));
+				showCompletedMessage();
 				return;
 			}
 

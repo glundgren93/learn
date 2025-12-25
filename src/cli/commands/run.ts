@@ -1,32 +1,30 @@
 import chalk from 'chalk';
 import type { Command } from 'commander';
 import ora from 'ora';
-import { getTestPath, loadRoadmap } from '../../services/filesystem.js';
+import { getTestPath } from '../../services/filesystem.js';
 import { incrementAttempts, markStageComplete } from '../../services/progress.js';
 import { runTests } from '../../services/testRunner.js';
-import { findCurrentTopic } from '../utils/index.js';
+import {
+	handleContextError,
+	loadLearningContext,
+	showCompletedMessage,
+} from '../middleware/index.js';
 
 export function registerRunCommand(program: Command): void {
 	program
 		.command('run [topic]')
 		.description('Run tests for the current stage (optionally specify topic or stage)')
-		.option('-s, --stage <stageId>', 'Run tests for a specific stage (e.g., stage-1, linked-list-queue-impl)')
+		.option(
+			'-s, --stage <stageId>',
+			'Run tests for a specific stage (e.g., stage-1, linked-list-queue-impl)'
+		)
 		.action(async (topicArg: string | undefined, options: { stage?: string }) => {
-			const progress = await findCurrentTopic(topicArg);
-			if (!progress) {
-				console.log(
-					chalk.red('No active learning path found. Use "learn start <topic>" to begin.')
-				);
-				return;
-			}
+			const result = await loadLearningContext(topicArg);
+			if (handleContextError(result)) return;
 
-			const roadmap = await loadRoadmap(progress.topic);
-			if (!roadmap) {
-				console.log(chalk.red(`Roadmap not found for topic: ${progress.topic}`));
-				return;
-			}
+			const { progress, roadmap, currentStage, stageNumber } = result.context;
 
-			let targetStage: typeof roadmap.stages[number] | undefined;
+			let targetStage: (typeof roadmap.stages)[number] | null | undefined;
 			let targetStageNum: number;
 			let isRerun = false;
 
@@ -61,14 +59,14 @@ export function registerRunCommand(program: Command): void {
 						}
 					}
 				}
-				isRerun = targetStageNum < progress.currentStage;
+				isRerun = targetStageNum < stageNumber;
 			} else {
-				targetStageNum = progress.currentStage;
-				targetStage = roadmap.stages[targetStageNum - 1];
+				targetStageNum = stageNumber;
+				targetStage = currentStage;
 			}
 
 			if (!targetStage) {
-				console.log(chalk.green('🎉 All stages completed!'));
+				showCompletedMessage();
 				return;
 			}
 
@@ -92,7 +90,6 @@ export function registerRunCommand(program: Command): void {
 					if (!isRerun) {
 						await markStageComplete(progress.topic, targetStageNum);
 					}
-					console.log();
 					for (const test of passedTests) {
 						console.log(chalk.green(`  ✓ ${test.name}`));
 					}
@@ -103,15 +100,10 @@ export function registerRunCommand(program: Command): void {
 					}
 				} else {
 					spinner.fail(chalk.red('Some tests failed'));
-					console.log();
 
 					// Show passed tests first
 					for (const test of passedTests) {
 						console.log(chalk.green(`  ✓ ${test.name}`));
-					}
-
-					if (passedTests.length > 0 && failedTests.length > 0) {
-						console.log();
 					}
 
 					// Show failed tests with details
@@ -127,9 +119,6 @@ export function registerRunCommand(program: Command): void {
 							if (test.received) {
 								console.log(chalk.red(`      Received: ${test.received}`));
 							}
-						}
-						if (index < failedTests.length - 1) {
-							console.log();
 						}
 					});
 
