@@ -5,6 +5,7 @@ import {
 	registerContinueCommand,
 	registerCurrentCommand,
 	registerHintCommand,
+	registerInitCommand,
 	registerRunCommand,
 	registerStartCommand,
 	registerStatusCommand,
@@ -13,6 +14,7 @@ import {
 } from './commands/index.js';
 
 export function setupCommands(program: Command): void {
+	registerInitCommand(program);
 	registerStartCommand(program);
 	registerSwitchCommand(program);
 	registerContinueCommand(program);

@@ -1,8 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { getLearningDir } from '../../services/context.js';
 import { getActiveTopic, loadProgress, setActiveTopic } from '../../services/progress.js';
-
-const LEARNING_DIR = process.env.LEARNING_DIR || './learning';
 
 export interface CurrentTopic {
 	topic: string;
@@ -30,11 +29,12 @@ export async function findCurrentTopic(topicOverride?: string): Promise<CurrentT
 
 	// Fallback: find any topic with progress
 	try {
-		const topics = await readdir(LEARNING_DIR, { withFileTypes: true });
+		const learningDir = getLearningDir();
+		const topics = await readdir(learningDir, { withFileTypes: true });
 		const topicDirs = topics.filter((dirent) => dirent.isDirectory());
 
 		for (const topicDir of topicDirs) {
-			const progressPath = join(LEARNING_DIR, topicDir.name, 'progress.json');
+			const progressPath = join(learningDir, topicDir.name, 'progress.json');
 			try {
 				const progress = JSON.parse(await readFile(progressPath, 'utf-8'));
 				if (progress.currentStage) {

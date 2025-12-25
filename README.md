@@ -120,6 +120,20 @@ This provides:
 
 After adding to your `.zshrc`, restart your shell or run `source ~/.zshrc`.
 
+## Editor Settings (Optional)
+
+### Open Markdown Files in Preview Mode
+
+When using `learn current`, file paths are clickable in the terminal. To have the lesson README files open directly in preview mode instead of the raw markdown editor, add this to your VS Code/Cursor settings:
+
+```json
+"workbench.editorAssociations": {
+  "**/learning/**/*.md": "vscode.markdown.preview.editor"
+}
+```
+
+This workspace already includes this setting in `.vscode/settings.json`.
+
 ## Development
 
 ```bash

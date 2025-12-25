@@ -5,8 +5,13 @@
 	"type": "module",
 	"main": "dist/index.js",
 	"bin": {
-		"learn": "./dist/index.js"
+		"learn": "./dist/index.js",
+		"learn-cli": "./dist/index.js"
 	},
+	"files": [
+		"dist",
+		"README.md"
+	],
 	"scripts": {
 		"build": "tsc && chmod +x dist/index.js",
 		"dev": "tsx src/index.ts",

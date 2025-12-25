@@ -1,11 +1,10 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Lesson, Roadmap } from '../types/index.js';
-
-const LEARNING_DIR = process.env.LEARNING_DIR || './learning';
+import { getLearningDir } from './context.js';
 
 export function getTopicDir(topic: string): string {
-	return join(LEARNING_DIR, topic);
+	return join(getLearningDir(), topic);
 }
 
 export function getStageDir(topic: string, stageId: string): string {

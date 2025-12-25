@@ -1,10 +1,7 @@
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Progress, StageProgress } from '../types/index.js';
-
-function getLearningDir(): string {
-	return process.env.LEARNING_DIR || './learning';
-}
+import { getLearningDir } from './context.js';
 
 function getActiveTopicFile(): string {
 	return join(getLearningDir(), '.active-topic');
