@@ -13,12 +13,41 @@ An AI-powered CLI tool for learning programming concepts through progressive, te
 ## Installation
 
 ```bash
+npm install -g learn-cli
+```
+
+Or for development:
+
+```bash
 npm install
 npm run build
 npm link  # Makes `learn` command available globally
 ```
 
-## Setup
+## Quick Start
+
+Create a new learning project:
+
+```bash
+learn-cli init my-studies
+cd my-studies
+```
+
+Set up your OpenAI API key:
+
+```bash
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY
+```
+
+Install dependencies and start learning:
+
+```bash
+npm install
+npx learn start queues
+```
+
+## Setup (Development)
 
 1. Copy `.env.example` to `.env`
 2. Add your OpenAI API key: `OPENAI_API_KEY=sk-...`
@@ -69,6 +98,7 @@ learn hint binary-trees      # Get hints for binary-trees topic
 
 | Command | Description |
 |---------|-------------|
+| `learn-cli init <name>` | Create a new learning project directory |
 | `learn start <topic>` | Start a new learning path |
 | `learn continue [topic]` | Generate/continue to the next lesson |
 | `learn run [topic]` | Run tests for the current stage |
@@ -90,9 +120,15 @@ learn hint binary-trees      # Get hints for binary-trees topic
 
 ## Project Structure
 
+When you run `learn-cli init my-studies`, you get:
+
 ```
-learning/
-└── queues/                    # Your topic
+my-studies/                    # Your learning project
+├── .env.example               # Environment template
+├── package.json               # Dependencies
+├── tsconfig.json              # TypeScript config
+├── vitest.config.ts           # Test config
+└── queues/                    # A topic you're learning
     ├── roadmap.json           # Generated learning roadmap
     ├── progress.json          # Your progress tracking
     └── stages/

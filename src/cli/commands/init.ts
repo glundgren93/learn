@@ -188,8 +188,9 @@ export function registerInitCommand(program: Command): void {
 				await mkdir(projectDir, { recursive: true });
 
 				// Determine learn-cli dependency
-				const isDevMode = options.dev || process.env.LEARN_DEV === '1';
-				const learnCliDep = isDevMode ? `file:${CLI_PROJECT_ROOT}` : '^1.0.0';
+				// TODO: Once learn-cli is published to npm, uncomment the line below and remove the hardcoded file: path
+				// const learnCliDep = (options.dev || process.env.LEARN_DEV === '1') ? `file:${CLI_PROJECT_ROOT}` : '^1.0.0';
+				const learnCliDep = `file:${CLI_PROJECT_ROOT}`; // Always use local for now until npm publish
 
 				// Create all scaffold files
 				await Promise.all([
@@ -218,10 +219,9 @@ export function registerInitCommand(program: Command): void {
 				console.log('  npm install');
 				console.log('  npx learn start <topic>');
 
-				if (isDevMode) {
-					console.log(chalk.yellow('\n⚠️  Dev mode: using local learn-cli from:'));
-					console.log(chalk.yellow(`   ${CLI_PROJECT_ROOT}`));
-				}
+				// TODO: Once published to npm, only show this when using file: path (dev mode)
+				console.log(chalk.yellow('\n⚠️  Using local learn-cli from:'));
+				console.log(chalk.yellow(`   ${CLI_PROJECT_ROOT}`));
 			} catch (error) {
 				console.log(chalk.red(`Failed to create project: ${error instanceof Error ? error.message : String(error)}`));
 				process.exit(1);
