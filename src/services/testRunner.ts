@@ -53,33 +53,54 @@ export async function runTests(testFile: string): Promise<TestResult> {
 			const allPassed = code === 0;
 			const lines = output.split('\n');
 
+			// Debug: log full output if no tests found
+			// console.log('Vitest output:', output);
+
 			// First pass: collect passed tests from verbose output
-			// Format: " ✓ path/to/file.ts > Suite > test name"
+			// Format: " ✓ path/to/file.ts > Suite > test name" or with checkmark symbol
 			for (const line of lines) {
-				if (line.includes('✓') && line.includes('>')) {
+				// Match passed tests - look for checkmark variants
+				if ((line.includes('✓') || line.includes('√') || /\s+✔/.test(line)) && line.includes('>')) {
 					// Extract just the test name (after the last >)
-					const testNameMatch = line.match(/>\s*([^>]+)$/);
+					const testNameMatch = line.match(/>\s*([^>]+?)\s*(?:\d+\s*ms)?$/);
 					if (testNameMatch) {
-						const cleanName = testNameMatch[1].trim();
-						tests.push({ name: cleanName, passed: true });
+						const cleanName = testNameMatch[1].trim().replace(/\s+\d+\s*ms$/, '');
+						if (cleanName) {
+							tests.push({ name: cleanName, passed: true });
+						}
 					}
 				}
 			}
 
-			// Second pass: collect error details for failed tests
+			// Second pass: collect failed tests
+			// Look for ✕, ×, x markers for failed tests
 			let currentFailedTest: TestCase | null = null;
 
 			for (const line of lines) {
-				// Capture FAIL blocks - start of a new failed test's details
-				if (line.includes('FAIL') && line.includes('>')) {
+				// Capture failed test lines - multiple possible markers
+				const isFailedTestLine = (line.includes('✕') || line.includes('×') || line.includes('✗') || 
+					(line.includes('FAIL') && line.includes('>'))) && line.includes('>');
+				
+				if (isFailedTestLine) {
 					// Save previous test if exists
 					if (currentFailedTest) {
 						tests.push(currentFailedTest);
 					}
-					// Extract just the test name from the FAIL line
-					const testNameMatch = line.match(/>\s*(.+)$/);
+					// Extract just the test name from the failed test line
+					const testNameMatch = line.match(/>\s*([^>]+?)\s*(?:\d+\s*ms)?$/);
 					if (testNameMatch) {
-						currentFailedTest = { name: testNameMatch[1].trim(), passed: false };
+						const cleanName = testNameMatch[1].trim().replace(/\s+\d+\s*ms$/, '');
+						if (cleanName) {
+							currentFailedTest = { name: cleanName, passed: false };
+						}
+					}
+				}
+
+				// Capture inline error messages (→ error message format from vitest verbose)
+				if (currentFailedTest && !currentFailedTest.error && line.includes('→')) {
+					const arrowMatch = line.match(/→\s*(.+)/);
+					if (arrowMatch) {
+						currentFailedTest.error = arrowMatch[1].trim();
 					}
 				}
 
@@ -88,21 +109,22 @@ export async function runTests(testFile: string): Promise<TestResult> {
 					currentFailedTest.error = line.replace(/^.*AssertionError:\s*/, '').trim();
 				}
 
-				// Capture expected/received values
+				// Capture expected/received values (vitest format)
 				if (currentFailedTest) {
-					const expectedMatch = line.match(/Expected[:\s]+(.+)/i);
-					const receivedMatch = line.match(/Received[:\s]+(.+)/i);
-					if (expectedMatch) {
-						currentFailedTest.expected = expectedMatch[1].trim();
+					// Match "- Expected" / "+ Received" format from vitest diff
+					const expectedLineMatch = line.match(/^-\s*(.+)/);
+					const receivedLineMatch = line.match(/^\+\s*(.+)/);
+					if (expectedLineMatch && !currentFailedTest.expected) {
+						currentFailedTest.expected = expectedLineMatch[1].trim();
 					}
-					if (receivedMatch) {
-						currentFailedTest.received = receivedMatch[1].trim();
+					if (receivedLineMatch && !currentFailedTest.received) {
+						currentFailedTest.received = receivedLineMatch[1].trim();
 					}
 				}
 
 				// Capture other error types
 				if (currentFailedTest && !currentFailedTest.error) {
-					const errorMatch = line.match(/(TypeError|ReferenceError|Error):\s*(.+)/);
+					const errorMatch = line.match(/(TypeError|ReferenceError|Error|expect\(.+\)):\s*(.+)/);
 					if (errorMatch) {
 						currentFailedTest.error = `${errorMatch[1]}: ${errorMatch[2]}`;
 					}
@@ -112,6 +134,17 @@ export async function runTests(testFile: string): Promise<TestResult> {
 			// Don't forget the last failed test
 			if (currentFailedTest) {
 				tests.push(currentFailedTest);
+			}
+
+			// If no tests were parsed but code indicates failure, add a generic entry
+			if (tests.length === 0 && !allPassed) {
+				// Try to extract error from output
+				const errorLines = lines.filter(l => l.includes('Error') || l.includes('error'));
+				tests.push({
+					name: 'Test execution',
+					passed: false,
+					error: errorLines.length > 0 ? errorLines[0].trim() : 'Tests failed - check console for details'
+				});
 			}
 
 			promiseResolve({

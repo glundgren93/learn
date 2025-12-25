@@ -1,0 +1,123 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+:root {
+  --font-sans: 'Outfit', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  
+  /* Catppuccin Mocha palette */
+  --crust: #11111b;
+  --mantle: #181825;
+  --base: #1e1e2e;
+  --surface0: #313244;
+  --surface1: #45475a;
+  --surface2: #585b70;
+  --overlay0: #6c7086;
+  --overlay1: #7f849c;
+  --overlay2: #9399b2;
+  --subtext0: #a6adc8;
+  --subtext1: #bac2de;
+  --text: #cdd6f4;
+  --lavender: #b4befe;
+  --blue: #89b4fa;
+  --sapphire: #74c7ec;
+  --sky: #89dceb;
+  --teal: #94e2d5;
+  --green: #a6e3a1;
+  --yellow: #f9e2af;
+  --peach: #fab387;
+  --maroon: #eba0ac;
+  --red: #f38ba8;
+  --mauve: #cba6f7;
+  --pink: #f5c2e7;
+  --flamingo: #f2cdcd;
+  --rosewater: #f5e0dc;
+}
+
+@theme {
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  
+  --color-crust: var(--crust);
+  --color-mantle: var(--mantle);
+  --color-base: var(--base);
+  --color-surface0: var(--surface0);
+  --color-surface1: var(--surface1);
+  --color-surface2: var(--surface2);
+  --color-overlay0: var(--overlay0);
+  --color-overlay1: var(--overlay1);
+  --color-overlay2: var(--overlay2);
+  --color-subtext0: var(--subtext0);
+  --color-subtext1: var(--subtext1);
+  --color-text: var(--text);
+  --color-lavender: var(--lavender);
+  --color-blue: var(--blue);
+  --color-sapphire: var(--sapphire);
+  --color-sky: var(--sky);
+  --color-teal: var(--teal);
+  --color-green: var(--green);
+  --color-yellow: var(--yellow);
+  --color-peach: var(--peach);
+  --color-maroon: var(--maroon);
+  --color-red: var(--red);
+  --color-mauve: var(--mauve);
+  --color-pink: var(--pink);
+  --color-flamingo: var(--flamingo);
+  --color-rosewater: var(--rosewater);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: linear-gradient(135deg, var(--crust) 0%, var(--base) 50%, var(--mantle) 100%);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--mantle);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--surface2);
+}
+
+/* Selection */
+::selection {
+  background: var(--mauve);
+  color: var(--crust);
+}
+
+/* Code blocks in markdown */
+pre, code {
+  font-family: var(--font-mono);
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--lavender);
+  outline-offset: 2px;
+}
+
