@@ -7,6 +7,11 @@ RULES FOR THEORY:
 2. Include time/space complexity analysis where relevant
 3. Keep theory concise (300-500 words) - learners should code, not read
 4. Use markdown with code examples
+5. END with a "## Your Task" section (3-5 bullet points max):
+   - List ONLY the functions/types to implement or modify
+   - One line per task, no explanations
+   - Example: "- Implement \`enqueue(item)\` to add to the back"
+   - Do NOT repeat theory or explain why
 
 IMPORTANT - ACKNOWLEDGE DESIGN ALTERNATIVES:
 Many data structures and algorithms have multiple valid design choices. When such choices exist, you MUST:
