@@ -2,12 +2,7 @@ import { mkdir, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Roadmap } from '../types/index.js';
-import {
-	getTopicDir,
-	loadRoadmap,
-	saveRoadmap,
-	saveTopicOverview,
-} from './filesystem.js';
+import { getTopicDir, loadRoadmap, saveRoadmap, saveTopicOverview } from './filesystem.js';
 
 const TEST_LEARNING_DIR = './test-learning-fs';
 
@@ -29,10 +24,7 @@ describe('Filesystem Service', () => {
 
 			await saveTopicOverview(topic, overview);
 
-			const savedContent = await readFile(
-				join(getTopicDir(topic), 'LEARN.md'),
-				'utf-8'
-			);
+			const savedContent = await readFile(join(getTopicDir(topic), 'LEARN.md'), 'utf-8');
 			expect(savedContent).toBe(overview);
 		});
 
@@ -42,10 +34,7 @@ describe('Filesystem Service', () => {
 
 			await saveTopicOverview(topic, overview);
 
-			const savedContent = await readFile(
-				join(getTopicDir(topic), 'LEARN.md'),
-				'utf-8'
-			);
+			const savedContent = await readFile(join(getTopicDir(topic), 'LEARN.md'), 'utf-8');
 			expect(savedContent).toBe(overview);
 		});
 
@@ -55,10 +44,7 @@ describe('Filesystem Service', () => {
 
 			await saveTopicOverview(topic, overview);
 
-			const savedContent = await readFile(
-				join(getTopicDir(topic), 'LEARN.md'),
-				'utf-8'
-			);
+			const savedContent = await readFile(join(getTopicDir(topic), 'LEARN.md'), 'utf-8');
 			expect(savedContent).toBe(overview);
 		});
 	});
@@ -73,8 +59,8 @@ describe('Filesystem Service', () => {
 				objective: `Objective for stage ${i + 1}`,
 				difficulty: i < 2 ? 'beginner' : i < 4 ? 'intermediate' : 'advanced',
 				prerequisites: i > 0 ? [`stage-${i}`] : [],
-				estimatedMinutes: 30,
 				isRealWorldProject: i === 5,
+				requiresPreviousSolution: i > 0,
 			})),
 		});
 
@@ -93,4 +79,3 @@ describe('Filesystem Service', () => {
 		});
 	});
 });
-
