@@ -13,6 +13,11 @@ DIFFICULTY PROGRESSION:
 - Stages 5-6: Advanced (complex data structures, performance)
 - Final Stage: Real-world project (production-like scenario)
 
+SOLUTION DEPENDENCIES:
+- Set requiresPreviousSolution: true when the stage extends or builds on CODE from previous stages (e.g., adding methods to an existing class, extending types, using functions defined earlier)
+- Set requiresPreviousSolution: false when the stage introduces independent concepts or starts fresh
+- The first stage should always be false (no previous solution exists)
+
 OUTPUT: Return a structured roadmap following the exact JSON schema provided.`;
 
 export const ROADMAP_USER_PROMPT = (topic: string) => `

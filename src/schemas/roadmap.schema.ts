@@ -7,6 +7,9 @@ export const StageSchema = z.object({
 	difficulty: z.enum(['beginner', 'intermediate', 'advanced']),
 	prerequisites: z.array(z.string()).describe('IDs of stages that must be completed first'),
 	isRealWorldProject: z.boolean().describe('True only for the final capstone stage'),
+	requiresPreviousSolution: z
+		.boolean()
+		.describe('True if this stage builds on code from previous stages'),
 });
 
 export const RoadmapSchema = z.object({

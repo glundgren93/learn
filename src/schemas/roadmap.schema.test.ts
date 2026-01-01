@@ -8,6 +8,7 @@ const createStage = (id: number, isRealWorldProject = false) => ({
 	difficulty: id <= 2 ? 'beginner' : id <= 4 ? 'intermediate' : ('advanced' as const),
 	prerequisites: id > 1 ? [`stage-${id - 1}`] : [],
 	isRealWorldProject,
+	requiresPreviousSolution: id > 1,
 });
 
 describe('Roadmap Schema', () => {
@@ -48,6 +49,7 @@ describe('Roadmap Schema', () => {
 			difficulty: 'beginner' as const,
 			prerequisites: [],
 			isRealWorldProject: false,
+			requiresPreviousSolution: false,
 		};
 
 		const result = StageSchema.safeParse(validStage);

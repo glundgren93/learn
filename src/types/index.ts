@@ -7,6 +7,7 @@ export interface Stage {
 	difficulty: Difficulty;
 	prerequisites: string[];
 	isRealWorldProject: boolean;
+	requiresPreviousSolution: boolean;
 }
 
 export interface Roadmap {
@@ -35,6 +36,7 @@ export interface LessonContext {
 	objective: string;
 	previousStages: Array<{ title: string; objective: string }>;
 	previousConcepts: string[];
+	previousSolution?: { stageId: string; code: string };
 }
 
 export interface StageProgress {

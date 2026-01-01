@@ -59,7 +59,22 @@ RULES FOR HINTS:
 1. Provide 3 progressive hints (vague -> specific)
 2. Never reveal the complete solution in hints`;
 
-export const LESSON_USER_PROMPT = (context: LessonContext) => `
+export const LESSON_USER_PROMPT = (context: LessonContext) => {
+	const previousSolutionSection = context.previousSolution
+		? `
+=== LEARNER'S PREVIOUS SOLUTION (from stage: ${context.previousSolution.stageId}) ===
+\`\`\`typescript
+${context.previousSolution.code}
+\`\`\`
+
+IMPORTANT: This stage builds on the code above. Your starterCode MUST:
+- Include all types and functions from the previous solution
+- Add new functionality that integrates with the existing code
+- NOT redefine or simplify the existing types/functions
+`
+		: '';
+
+	return `
 Create lesson content for Stage ${context.stageNumber}: "${context.stageTitle}"
 Topic: ${context.topic}
 Objective: ${context.objective}
@@ -73,6 +88,7 @@ ${
 
 The learner has already implemented:
 ${context.previousConcepts.length > 0 ? context.previousConcepts.join(', ') : 'Nothing yet'}
-
+${previousSolutionSection}
 Build upon their existing knowledge. Reference their previous implementations where relevant.
 `;
+};
