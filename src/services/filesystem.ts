@@ -44,9 +44,9 @@ export async function saveLesson(topic: string, stageId: string, lesson: Lesson)
 	const stageDir = getStageDir(topic, stageId);
 	await mkdir(stageDir, { recursive: true });
 
-	// Save README.md with theory
-	const readmePath = join(stageDir, 'README.md');
-	await writeFile(readmePath, lesson.theory, 'utf-8');
+	// Save THEORY.md with lesson content
+	const theoryPath = join(stageDir, 'THEORY.md');
+	await writeFile(theoryPath, lesson.theory, 'utf-8');
 
 	// Save test file
 	const testDir = join(stageDir, 'tests');
@@ -99,13 +99,13 @@ export async function loadLesson(topic: string, stageId: string): Promise<Lesson
 	try {
 		const stageDir = getStageDir(topic, stageId);
 
-		const readmePath = join(stageDir, 'README.md');
+		const theoryPath = join(stageDir, 'THEORY.md');
 		const hintsPath = join(stageDir, 'hints.json');
 		const solutionPath = join(stageDir, 'solution.ts');
 		const testPath = join(stageDir, 'tests', 'solution.test.ts');
 
 		const [theory, hintsJson, starterCode, testContent] = await Promise.all([
-			readFile(readmePath, 'utf-8'),
+			readFile(theoryPath, 'utf-8'),
 			readFile(hintsPath, 'utf-8'),
 			readFile(solutionPath, 'utf-8'),
 			readFile(testPath, 'utf-8'),

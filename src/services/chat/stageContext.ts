@@ -16,7 +16,7 @@ export async function loadStageContext(
 
 	try {
 		const [readme, solutionCode, testCode, hintsJson] = await Promise.all([
-			readFile(`${stageDir}/README.md`, 'utf-8').catch(() => ''),
+			readFile(`${stageDir}/THEORY.md`, 'utf-8').catch(() => ''),
 			readFile(`${stageDir}/solution.ts`, 'utf-8').catch(() => ''),
 			readFile(`${stageDir}/tests/solution.test.ts`, 'utf-8').catch(() => ''),
 			readFile(`${stageDir}/hints.json`, 'utf-8').catch(() => '[]'),

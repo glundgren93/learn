@@ -29,16 +29,16 @@ async function listFilesRecursive(dir: string): Promise<string[]> {
 }
 
 function printStageFiles(files: string[]): void {
-	const readme = files.find((f) => f.endsWith('README.md'));
+	const theory = files.find((f) => f.endsWith('THEORY.md'));
 	const solution = files.find((f) => f.endsWith('solution.ts'));
 	const tests = files.filter((f) => f.includes('/tests/'));
 	const others = files.filter(
-		(f) => !f.endsWith('README.md') && !f.endsWith('solution.ts') && !f.includes('/tests/')
+		(f) => !f.endsWith('THEORY.md') && !f.endsWith('solution.ts') && !f.includes('/tests/')
 	);
 
 	console.log(chalk.bold('\n  📚 Theory:'));
-	if (readme) {
-		console.log(`     ${readme}`);
+	if (theory) {
+		console.log(`     ${theory}`);
 	}
 
 	console.log(chalk.bold('\n  📝 Solution:'));

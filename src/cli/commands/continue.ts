@@ -38,7 +38,7 @@ export function registerContinueCommand(program: Command): void {
 					console.log(chalk.bold('🧪 Tests:'), getTestPath(progress.topic, currentStage.id));
 					console.log(
 						chalk.bold('📚 Theory:'),
-						`learning/${progress.topic}/stages/${currentStage.id}/README.md`
+						`learning/${progress.topic}/stages/${currentStage.id}/THEORY.md`
 					);
 
 					console.log(

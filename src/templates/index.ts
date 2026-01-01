@@ -135,7 +135,7 @@ ${name}/
 │   ├── progress.json             # Your progress tracking
 │   └── stages/
 │       └── basic-queue/          # A stage
-│           ├── README.md         # Theory and explanation
+│           ├── THEORY.md         # Lesson content and explanation
 │           ├── solution.ts       # Your code (edit this!)
 │           ├── hints.json        # Progressive hints
 │           └── tests/
