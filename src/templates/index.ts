@@ -2,7 +2,7 @@
  * Project scaffold templates used by the `learn init` command.
  */
 
-export const PACKAGE_JSON_TEMPLATE = (name: string, learnCliDep: string) => ({
+export const PACKAGE_JSON_TEMPLATE = (name: string, learnDep: string) => ({
 	name: name,
 	private: true,
 	type: 'module',
@@ -11,7 +11,7 @@ export const PACKAGE_JSON_TEMPLATE = (name: string, learnCliDep: string) => ({
 		'test:watch': 'vitest',
 	},
 	devDependencies: {
-		'learn-cli': learnCliDep,
+		'@glundgren93/learn': learnDep,
 		typescript: '^5.9.3',
 		vitest: '^4.0.0',
 	},
@@ -56,7 +56,7 @@ OPENAI_API_KEY=sk-...
 
 export const README_TEMPLATE = (name: string) => `# ${name}
 
-A learning project created with [learn-cli](https://github.com/your-repo/learn-cli) — an AI-powered CLI for learning programming through progressive, test-driven lessons.
+A learning project created with [@glundgren93/learn](https://github.com/glundgren93/learn) — an AI-powered CLI for learning programming through progressive, test-driven lessons.
 
 ## Setup
 

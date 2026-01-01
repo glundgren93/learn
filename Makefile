@@ -1,4 +1,4 @@
-.PHONY: help install build test test-watch test-learning clean dev format lint check fix
+.PHONY: help install build test test-watch test-learning clean dev format lint check fix publish publish-patch publish-minor publish-major
 
 # Default target
 help:
@@ -14,6 +14,11 @@ help:
 	@echo "  make lint         - Lint code with ESLint"
 	@echo "  make check        - Run format check and lint"
 	@echo "  make fix          - Auto-fix linting and formatting issues"
+	@echo ""
+	@echo "Publishing:"
+	@echo "  make publish-patch - Bump patch version (0.1.0 → 0.1.1) and publish"
+	@echo "  make publish-minor - Bump minor version (0.1.0 → 0.2.0) and publish"
+	@echo "  make publish-major - Bump major version (0.1.0 → 1.0.0) and publish"
 
 # Install dependencies
 install:
@@ -63,4 +68,22 @@ check:
 # Auto-fix linting and formatting issues
 fix: format
 	npx eslint "src/**/*.ts" --ext .ts --fix
+
+# Publish to npm (patch version bump: 0.1.0 → 0.1.1)
+publish-patch:
+	npm version patch
+	npm run build
+	npm publish --access public
+
+# Publish to npm (minor version bump: 0.1.0 → 0.2.0)
+publish-minor:
+	npm version minor
+	npm run build
+	npm publish --access public
+
+# Publish to npm (major version bump: 0.1.0 → 1.0.0)
+publish-major:
+	npm version major
+	npm run build
+	npm publish --access public
 
