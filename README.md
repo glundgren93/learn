@@ -13,7 +13,7 @@ An AI-powered CLI tool for learning programming concepts through progressive, te
 ## Installation
 
 ```bash
-npm install -g learn-cli
+npm install -g @glundgren93/learn
 ```
 
 Or for development:

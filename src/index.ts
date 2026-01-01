@@ -8,7 +8,7 @@ const program = new Command();
 program
 	.name('learn')
 	.description('AI-powered programming learning CLI')
-	.version('1.0.0')
+	.version('0.1.0')
 	.addHelpText(
 		'after',
 		`
