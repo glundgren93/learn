@@ -1,6 +1,6 @@
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { Progress, StageProgress } from '../types/index.js';
+import type { Progress, ProgressStats, StageProgress } from '../types/index.js';
 import { getLearningDir } from './context.js';
 
 function getActiveTopicFile(): string {
@@ -127,4 +127,12 @@ export async function getAllTopicsProgress(): Promise<Progress[]> {
 	} catch {
 		return [];
 	}
+}
+
+export function calculateProgressStats(progress: Progress): ProgressStats {
+	const completed = Object.values(progress.stages).filter((s) => s.status === 'completed').length;
+	const total = Object.keys(progress.stages).length;
+	const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+	return { completed, total, percentage };
 }

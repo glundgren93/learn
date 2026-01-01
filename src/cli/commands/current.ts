@@ -3,6 +3,8 @@ import { resolve } from 'node:path';
 import chalk from 'chalk';
 import type { Command } from 'commander';
 import { getStageDir } from '../../services/filesystem.js';
+import { calculateProgressStats } from '../../services/progress.js';
+import { handleCommand } from '../errors.js';
 import {
 	handleContextError,
 	loadLearningContext,
@@ -65,52 +67,50 @@ export function registerCurrentCommand(program: Command): void {
 	program
 		.command('current')
 		.description('Show the current active topic and stage files')
-		.action(async () => {
-			const result = await loadLearningContext();
-			if (handleContextError(result)) return;
+		.action(
+			handleCommand(async () => {
+				const result = await loadLearningContext();
+				if (handleContextError(result)) return;
 
-			const { progress, fullProgress, currentStage, stageNumber } = result.context;
+				const { progress, fullProgress, currentStage, stageNumber } = result.context;
 
-			const completed = Object.values(fullProgress.stages).filter(
-				(s) => s.status === 'completed'
-			).length;
-			const total = Object.keys(fullProgress.stages).length;
-			const percentage = Math.round((completed / total) * 100);
+				const { completed, total, percentage } = calculateProgressStats(fullProgress);
 
-			console.log(chalk.bold.cyan(`\n📍 Current Topic: ${progress.topic}\n`));
-			console.log(
-				`  ${createProgressBar(percentage, 20)} ${completed}/${total} stages (${percentage}%)`
-			);
+				console.log(chalk.bold.cyan(`\n📍 Current Topic: ${progress.topic}\n`));
+				console.log(
+					`  ${createProgressBar(percentage, 20)} ${completed}/${total} stages (${percentage}%)`
+				);
 
-			if (currentStage) {
-				console.log(chalk.bold(`\n  Stage ${stageNumber}: ${currentStage.title}`));
-				console.log(chalk.gray(`  ${currentStage.objective}`));
-				console.log(chalk.gray(`  Difficulty: ${currentStage.difficulty}`));
+				if (currentStage) {
+					console.log(chalk.bold(`\n  Stage ${stageNumber}: ${currentStage.title}`));
+					console.log(chalk.gray(`  ${currentStage.objective}`));
+					console.log(chalk.gray(`  Difficulty: ${currentStage.difficulty}`));
 
-				// Show stage files
-				const stageDir = getStageDir(progress.topic, currentStage.id);
-				try {
-					const files = await listFilesRecursive(resolve(stageDir));
-					if (files.length > 0) {
-						printStageFiles(files);
-					} else {
-						console.log(
-							chalk.yellow('\n  No files found. Run "learn continue" to generate lesson files.')
-						);
+					// Show stage files
+					const stageDir = getStageDir(progress.topic, currentStage.id);
+					try {
+						const files = await listFilesRecursive(resolve(stageDir));
+						if (files.length > 0) {
+							printStageFiles(files);
+						} else {
+							console.log(
+								chalk.yellow('\n  No files found. Run "learn continue" to generate lesson files.')
+							);
+						}
+					} catch (error) {
+						if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+							console.log(
+								chalk.yellow('\n  Stage files not generated yet. Run "learn continue" first.')
+							);
+						} else {
+							throw error;
+						}
 					}
-				} catch (error) {
-					if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-						console.log(
-							chalk.yellow('\n  Stage files not generated yet. Run "learn continue" first.')
-						);
-					} else {
-						throw error;
-					}
+				} else {
+					showCompletedMessage();
 				}
-			} else {
-				showCompletedMessage();
-			}
 
-			console.log(chalk.gray('\n  Use "learn switch" to change topics'));
-		});
+				console.log(chalk.gray('\n  Use "learn switch" to change topics'));
+			})
+		);
 }

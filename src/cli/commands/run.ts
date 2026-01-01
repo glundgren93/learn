@@ -4,6 +4,7 @@ import ora from 'ora';
 import { getTestPath } from '../../services/filesystem.js';
 import { incrementAttempts, markStageComplete } from '../../services/progress.js';
 import { runTests } from '../../services/testRunner.js';
+import { CLIError, handleCommand } from '../errors.js';
 import {
 	handleContextError,
 	loadLearningContext,
@@ -18,52 +19,51 @@ export function registerRunCommand(program: Command): void {
 			'-s, --stage <stageId>',
 			'Run tests for a specific stage (e.g., stage-1, linked-list-queue-impl)'
 		)
-		.action(async (topicArg: string | undefined, options: { stage?: string }) => {
-			const result = await loadLearningContext(topicArg);
-			if (handleContextError(result)) return;
+		.action(
+			handleCommand(async (topicArg: string | undefined, options: { stage?: string }) => {
+				const result = await loadLearningContext(topicArg);
+				if (handleContextError(result)) return;
 
-			const { progress, roadmap, currentStage, stageNumber } = result.context;
+				const { progress, roadmap, currentStage, stageNumber } = result.context;
 
-			let targetStage: (typeof roadmap.stages)[number] | null | undefined;
-			let targetStageNum: number;
-			let isRerun = false;
+				let targetStage: (typeof roadmap.stages)[number] | null | undefined;
+				let targetStageNum: number;
+				let isRerun = false;
 
-			if (options?.stage) {
-				// Find stage by id or by number (stage-1, stage-2, etc.)
-				const stageArg = options.stage;
-				const stageNumMatch = stageArg.match(/^stage-?(\d+)$/i);
+				if (options?.stage) {
+					// Find stage by id or by number (stage-1, stage-2, etc.)
+					const stageArg = options.stage;
+					const stageNumMatch = stageArg.match(/^stage-?(\d+)$/i);
 
-				if (stageNumMatch) {
-					// stage-1, stage-2, etc.
-					targetStageNum = Number.parseInt(stageNumMatch[1], 10);
-					targetStage = roadmap.stages[targetStageNum - 1];
-				} else {
-					// Match by stage id
-					const foundIndex = roadmap.stages.findIndex((s) => s.id === stageArg);
-					if (foundIndex !== -1) {
-						targetStageNum = foundIndex + 1;
-						targetStage = roadmap.stages[foundIndex];
+					if (stageNumMatch) {
+						// stage-1, stage-2, etc.
+						targetStageNum = Number.parseInt(stageNumMatch[1], 10);
+						targetStage = roadmap.stages[targetStageNum - 1];
 					} else {
-						// Try partial match
-						const partialIndex = roadmap.stages.findIndex((s) => s.id.includes(stageArg));
-						if (partialIndex !== -1) {
-							targetStageNum = partialIndex + 1;
-							targetStage = roadmap.stages[partialIndex];
+						// Match by stage id
+						const foundIndex = roadmap.stages.findIndex((s) => s.id === stageArg);
+						if (foundIndex !== -1) {
+							targetStageNum = foundIndex + 1;
+							targetStage = roadmap.stages[foundIndex];
 						} else {
-							console.log(chalk.red(`Stage not found: ${stageArg}`));
-							console.log(chalk.dim('Available stages:'));
-							roadmap.stages.forEach((s, i) => {
-								console.log(chalk.dim(`  stage-${i + 1}: ${s.id}`));
-							});
-							return;
+							// Try partial match
+							const partialIndex = roadmap.stages.findIndex((s) => s.id.includes(stageArg));
+							if (partialIndex !== -1) {
+								targetStageNum = partialIndex + 1;
+								targetStage = roadmap.stages[partialIndex];
+							} else {
+								const stagesList = roadmap.stages
+									.map((s, i) => `  stage-${i + 1}: ${s.id}`)
+									.join('\n');
+								throw new CLIError(`Stage not found: ${stageArg}\n\nAvailable stages:\n${stagesList}`);
+							}
 						}
 					}
+					isRerun = targetStageNum < stageNumber;
+				} else {
+					targetStageNum = stageNumber;
+					targetStage = currentStage;
 				}
-				isRerun = targetStageNum < stageNumber;
-			} else {
-				targetStageNum = stageNumber;
-				targetStage = currentStage;
-			}
 
 			if (!targetStage) {
 				showCompletedMessage();
@@ -125,9 +125,12 @@ export function registerRunCommand(program: Command): void {
 					console.log(chalk.yellow('\n💡 Tip: Run "learn hint" for help'));
 				}
 			} catch (error) {
-				spinner.fail(
-					`Failed to run tests: ${error instanceof Error ? error.message : String(error)}`
+				spinner.stop();
+				throw new CLIError(
+					`Failed to run tests: ${error instanceof Error ? error.message : String(error)}`,
+					{ exitCode: 1 }
 				);
 			}
-		});
+			})
+		);
 }

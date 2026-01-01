@@ -6,7 +6,6 @@ export const StageSchema = z.object({
 	objective: z.string().describe('One sentence: what the learner will build/prove'),
 	difficulty: z.enum(['beginner', 'intermediate', 'advanced']),
 	prerequisites: z.array(z.string()).describe('IDs of stages that must be completed first'),
-	estimatedMinutes: z.number().min(15).max(60),
 	isRealWorldProject: z.boolean().describe('True only for the final capstone stage'),
 });
 

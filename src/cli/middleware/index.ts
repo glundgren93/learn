@@ -5,5 +5,6 @@ export {
 	handleContextError,
 	type LearningContext,
 	loadLearningContext,
+	requireLearningContext,
 	showCompletedMessage,
 } from './loadContext.js';

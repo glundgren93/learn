@@ -1,14 +1,19 @@
 import { LessonSchema } from '../schemas/lesson.schema.js';
 import { loadRoadmap } from '../services/filesystem.js';
 import type { Lesson, LessonContext } from '../types/index.js';
-import { callWithStructuredOutput } from './client.js';
+import { type TokenUsage, callWithStructuredOutput } from './client.js';
 import { LESSON_SYSTEM_PROMPT, LESSON_USER_PROMPT } from './prompts/lesson.js';
+
+export interface GenerateLessonResult {
+	lesson: Lesson;
+	usage: TokenUsage;
+}
 
 export async function generateLesson(
 	topic: string,
 	stageId: string,
 	stageNumber: number
-): Promise<Lesson> {
+): Promise<GenerateLessonResult> {
 	const roadmap = await loadRoadmap(topic);
 	if (!roadmap) {
 		throw new Error(`Roadmap not found for topic: ${topic}`);
@@ -36,11 +41,11 @@ export async function generateLesson(
 		previousConcepts,
 	};
 
-	const lesson = await callWithStructuredOutput(
+	const { data: lesson, usage } = await callWithStructuredOutput(
 		LessonSchema,
 		LESSON_SYSTEM_PROMPT,
 		LESSON_USER_PROMPT(context)
 	);
 
-	return lesson as Lesson;
+	return { lesson: lesson as Lesson, usage };
 }

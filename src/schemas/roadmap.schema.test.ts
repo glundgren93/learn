@@ -7,7 +7,6 @@ const createStage = (id: number, isRealWorldProject = false) => ({
 	objective: `Objective for stage ${id}`,
 	difficulty: id <= 2 ? 'beginner' : id <= 4 ? 'intermediate' : ('advanced' as const),
 	prerequisites: id > 1 ? [`stage-${id - 1}`] : [],
-	estimatedMinutes: 20,
 	isRealWorldProject,
 });
 
@@ -48,26 +47,10 @@ describe('Roadmap Schema', () => {
 			objective: 'Test objective',
 			difficulty: 'beginner' as const,
 			prerequisites: [],
-			estimatedMinutes: 25,
 			isRealWorldProject: false,
 		};
 
 		const result = StageSchema.safeParse(validStage);
 		expect(result.success).toBe(true);
-	});
-
-	it('should reject stage with estimatedMinutes outside range', () => {
-		const invalidStage = {
-			id: 'test-stage',
-			title: 'Test Stage',
-			objective: 'Test objective',
-			difficulty: 'beginner' as const,
-			prerequisites: [],
-			estimatedMinutes: 10, // Below minimum of 15
-			isRealWorldProject: false,
-		};
-
-		const result = StageSchema.safeParse(invalidStage);
-		expect(result.success).toBe(false);
 	});
 });

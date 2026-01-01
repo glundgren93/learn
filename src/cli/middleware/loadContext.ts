@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import { loadRoadmap } from '../../services/filesystem.js';
 import { loadProgress } from '../../services/progress.js';
 import type { Progress, Roadmap, Stage } from '../../types/index.js';
+import { CLIError } from '../errors.js';
 import { findCurrentTopic } from '../utils/index.js';
 
 /**
@@ -107,6 +108,23 @@ export function handleContextError(
 		return true;
 	}
 	return false;
+}
+
+/**
+ * Load learning context or throw CLIError.
+ * Use this instead of loadLearningContext + handleContextError when you want
+ * errors to be thrown rather than checked.
+ *
+ * @throws {CLIError} If context cannot be loaded.
+ */
+export async function requireLearningContext(topicArg?: string): Promise<LearningContext> {
+	const result = await loadLearningContext(topicArg);
+	if (!result.ok) {
+		const tip =
+			result.error.type === 'no-topic' ? 'Use "learn start <topic>" to begin.' : undefined;
+		throw new CLIError(result.error.message, { tip });
+	}
+	return result.context;
 }
 
 /**

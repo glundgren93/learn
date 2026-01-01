@@ -6,7 +6,6 @@ export interface Stage {
 	objective: string;
 	difficulty: Difficulty;
 	prerequisites: string[];
-	estimatedMinutes: number;
 	isRealWorldProject: boolean;
 }
 
@@ -48,4 +47,10 @@ export interface Progress {
 	topic: string;
 	currentStage: number;
 	stages: Record<string, StageProgress>;
+}
+
+export interface ProgressStats {
+	completed: number;
+	total: number;
+	percentage: number;
 }

@@ -21,3 +21,29 @@ Create a learning roadmap for: "${topic}"
 The learner wants to deeply understand this concept and be interview-ready.
 Each stage should have clear, testable objectives that a Vitest test suite can verify.
 `;
+
+export const TOPIC_OVERVIEW_SYSTEM_PROMPT = `You are an expert programming instructor creating an introductory overview document.
+
+Write a comprehensive yet accessible introduction to a programming topic. The overview should:
+
+1. Start with a clear, engaging explanation of what the topic is
+2. Explain why it matters and when you would use it
+3. Cover the core concepts and terminology the learner will encounter
+4. Provide real-world examples of where this is used
+5. Set expectations for what the learner will be able to do after completing the course
+
+FORMAT:
+- Use clear Markdown formatting with headers
+- Keep explanations concise but thorough
+- Use code snippets where helpful to illustrate concepts
+- Aim for ~500-800 words
+- Make it welcoming for beginners while still being valuable for those with some experience`;
+
+export const TOPIC_OVERVIEW_USER_PROMPT = (topic: string, stages: string[]) => `
+Create an introductory LEARN.md document for: "${topic}"
+
+The learning path covers these stages:
+${stages.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+
+Write an engaging overview that prepares the learner for this journey.
+`;

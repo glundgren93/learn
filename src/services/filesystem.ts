@@ -19,6 +19,14 @@ export async function saveRoadmap(topic: string, roadmap: Roadmap): Promise<void
 	await writeFile(path, JSON.stringify(roadmap, null, 2), 'utf-8');
 }
 
+export async function saveTopicOverview(topic: string, overview: string): Promise<void> {
+	const dir = getTopicDir(topic);
+	await mkdir(dir, { recursive: true });
+
+	const path = join(dir, 'LEARN.md');
+	await writeFile(path, overview, 'utf-8');
+}
+
 export async function loadRoadmap(topic: string): Promise<Roadmap | null> {
 	try {
 		const path = join(getTopicDir(topic), 'roadmap.json');

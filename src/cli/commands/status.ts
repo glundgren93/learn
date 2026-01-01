@@ -1,7 +1,12 @@
 import chalk from 'chalk';
 import type { Command } from 'commander';
 import { loadRoadmap } from '../../services/filesystem.js';
-import { getActiveTopic, getAllTopicsProgress } from '../../services/progress.js';
+import {
+	calculateProgressStats,
+	getActiveTopic,
+	getAllTopicsProgress,
+} from '../../services/progress.js';
+import { handleCommand } from '../errors.js';
 import { createProgressBar } from '../utils/index.js';
 
 export async function showStatus(): Promise<void> {
@@ -17,9 +22,7 @@ export async function showStatus(): Promise<void> {
 
 	for (const progress of allProgress) {
 		const roadmap = await loadRoadmap(progress.topic);
-		const completed = Object.values(progress.stages).filter((s) => s.status === 'completed').length;
-		const total = Object.keys(progress.stages).length;
-		const percentage = Math.round((completed / total) * 100);
+		const { completed, total, percentage } = calculateProgressStats(progress);
 		const isActive = progress.topic === activeTopic;
 
 		const progressBar = createProgressBar(percentage, 20, isActive);
@@ -49,7 +52,5 @@ export function registerStatusCommand(program: Command): void {
 	program
 		.command('status')
 		.description('Show progress across all topics')
-		.action(async () => {
-			await showStatus();
-		});
+		.action(handleCommand(showStatus));
 }
