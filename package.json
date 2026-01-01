@@ -5,8 +5,7 @@
 	"type": "module",
 	"main": "dist/index.js",
 	"bin": {
-		"learn": "./dist/index.js",
-		"learn-cli": "./dist/index.js"
+		"learn": "./dist/index.js"
 	},
 	"files": [
 		"dist",

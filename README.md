@@ -29,7 +29,7 @@ npm link  # Makes `learn` command available globally
 Create a new learning project:
 
 ```bash
-learn-cli init my-studies
+learn init my-studies
 cd my-studies
 ```
 
@@ -98,7 +98,7 @@ learn hint binary-trees      # Get hints for binary-trees topic
 
 | Command | Description |
 |---------|-------------|
-| `learn-cli init <name>` | Create a new learning project directory |
+| `learn init <name>` | Create a new learning project directory |
 | `learn start <topic>` | Start a new learning path |
 | `learn continue [topic]` | Generate/continue to the next lesson |
 | `learn run [topic]` | Run tests for the current stage |
@@ -120,7 +120,7 @@ learn hint binary-trees      # Get hints for binary-trees topic
 
 ## Project Structure
 
-When you run `learn-cli init my-studies`, you get:
+When you run `learn init my-studies`, you get:
 
 ```
 my-studies/                    # Your learning project
